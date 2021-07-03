@@ -33,6 +33,15 @@ func main() {
 	// Bind handlers
 	apiv1.Post("/clubs", clubHandler.CreateClub)
 	apiv1.Get("/clubs", clubHandler.ListClub)
+
+	app.Get("/users/:id", func(ctx *fiber.Ctx) error {
+		userId := ctx.Params("id")
+		// ... 기타 작업 생략
+		return ctx.JSON(map[string]string{
+			"userId": userId,
+		})
+	})
+
 	//v1.Post("/users", handlers.UserCreate)
 
 	// Setup static files

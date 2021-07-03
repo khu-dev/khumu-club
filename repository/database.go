@@ -1,13 +1,14 @@
 package repository
 
 import (
-	"github.com/khu-dev/khumu-club/config"
-	"github.com/khu-dev/khumu-club/ent"
-	"github.com/khu-dev/khumu-club/ent/migrate"
 	"context"
 	"entgo.io/ent/dialect/sql"
 	"fmt"
 	_ "github.com/go-sql-driver/mysql"
+	"github.com/khu-dev/khumu-club/config"
+	"github.com/khu-dev/khumu-club/ent"
+	"github.com/khu-dev/khumu-club/ent/migrate"
+	_ "github.com/mattn/go-sqlite3"
 	log "github.com/sirupsen/logrus"
 	"time"
 )
@@ -51,6 +52,18 @@ func Connect() *ent.Client {
         migrate.WithDropColumn(true),
     )
     if err != nil {
+        log.Fatalf("failed creating schema resources: %v", err)
+    }
+	return client
+}
+
+func ConnectForTest() *ent.Client {
+	client, err := ent.Open("sqlite3", "file:ent?mode=memory&cache=shared&_fk=1")
+    if err != nil {
+        log.Fatalf("failed opening connection to sqlite: %v", err)
+    }
+    // Run the auto migration tool.
+    if err := client.Schema.Create(context.Background()); err != nil {
         log.Fatalf("failed creating schema resources: %v", err)
     }
 	return client
