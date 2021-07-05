@@ -4,7 +4,7 @@ RUN apk add tzdata
 WORKDIR /khumu
 # root directory가 아니라 build한 output임.
 # github action으로 빌드함.
-COPY khumu-comment /khumu/khumu-comment
+COPY khumu-club /khumu/khumu-club
 ENV KHUMU_HOME /khumu
 ENV KHUMU_ENVIRONMENT DEV
-CMD ["./khumu-comment"]
+CMD ["./khumu-club"]

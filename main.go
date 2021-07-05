@@ -46,14 +46,17 @@ func main() {
 	// JWT Middleware
 	app.Use(http.NewJWTMiddleware())
 
+	app.Get("/healthz", func(ctx *fiber.Ctx) error {
+		return ctx.SendString("healthy")
+	})
 	// Create a /api/v1 endpoint
 	api := app.Group("/api")
 
 	// Bind handlers
 	api.Post("/clubs", clubHandler.CreateClub)
 	api.Get("/clubs", clubHandler.ListClub)
-	api.Post("clubs/add-request", clubHandler.ClubAddRequest)
-	api.Post("clubs/modify-request", clubHandler.ClubModifyRequest)
+	api.Post("/clubs/add-request", clubHandler.ClubAddRequest)
+	api.Post("/clubs/modify-request", clubHandler.ClubModifyRequest)
 
 	//v1.Post("/users", handlers.UserCreate)
 

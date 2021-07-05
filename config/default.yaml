@@ -3,7 +3,7 @@ db:
   kind: mysql
   mysql:
     host: 호스트 ip or domain name
-    port: 포트 번호
+    port: 3306 #포트 번호
     databaseName: 사용할 데이터베이스 이름
     user: 사용자
     password: 패스워드
