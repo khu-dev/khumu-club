@@ -3,9 +3,9 @@
 package hook
 
 import (
-	"github.com/khu-dev/khumu-club/ent"
 	"context"
 	"fmt"
+	"github.com/khu-dev/khumu-club/ent"
 )
 
 // The ClubFunc type is an adapter to allow the use of ordinary

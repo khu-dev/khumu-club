@@ -1,15 +1,15 @@
 package http
 
 import (
-    "github.com/gofiber/fiber/v2"
-    jwtware "github.com/gofiber/jwt/v2"
+	"github.com/gofiber/fiber/v2"
+	jwtware "github.com/gofiber/jwt/v2"
 	"github.com/khu-dev/khumu-club/util"
 	log "github.com/sirupsen/logrus"
-    "os"
+	"os"
 )
 
-func NewJWTMiddleware() fiber.Handler{
-    return jwtware.New(jwtware.Config{
+func NewJWTMiddleware() fiber.Handler {
+	return jwtware.New(jwtware.Config{
 		SigningKey: []byte(os.Getenv("KHUMU_SECRET")),
 		SuccessHandler: func(ctx *fiber.Ctx) error {
 			log.Info("requestUser=", util.GetRequestUser(ctx))
@@ -30,4 +30,3 @@ func NewJWTMiddleware() fiber.Handler{
 		},
 	})
 }
-

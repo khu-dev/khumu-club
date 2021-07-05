@@ -34,4 +34,3 @@ func (Club) Edges() []ent.Edge {
 		edge.To("likes", LikeClub.Type),
 	}
 }
-

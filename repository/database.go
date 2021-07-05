@@ -46,25 +46,25 @@ func Connect() *ent.Client {
 
 	client := ent.NewClient(ent.Driver(drv))
 	err = client.Schema.Create(
-        context.TODO(),
-        migrate.WithDropIndex(true),
-        migrate.WithForeignKeys(true),
-        migrate.WithDropColumn(true),
-    )
-    if err != nil {
-        log.Fatalf("failed creating schema resources: %v", err)
-    }
+		context.TODO(),
+		migrate.WithDropIndex(true),
+		migrate.WithForeignKeys(true),
+		migrate.WithDropColumn(true),
+	)
+	if err != nil {
+		log.Fatalf("failed creating schema resources: %v", err)
+	}
 	return client
 }
 
 func ConnectForTest() *ent.Client {
 	client, err := ent.Open("sqlite3", "file:ent?mode=memory&cache=shared&_fk=1")
-    if err != nil {
-        log.Fatalf("failed opening connection to sqlite: %v", err)
-    }
-    // Run the auto migration tool.
-    if err := client.Schema.Create(context.Background()); err != nil {
-        log.Fatalf("failed creating schema resources: %v", err)
-    }
+	if err != nil {
+		log.Fatalf("failed opening connection to sqlite: %v", err)
+	}
+	// Run the auto migration tool.
+	if err := client.Schema.Create(context.Background()); err != nil {
+		log.Fatalf("failed creating schema resources: %v", err)
+	}
 	return client
 }

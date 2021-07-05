@@ -3,9 +3,9 @@
 package ent
 
 import (
-	"github.com/khu-dev/khumu-club/ent/club"
 	"encoding/json"
 	"fmt"
+	"github.com/khu-dev/khumu-club/ent/club"
 	"strings"
 
 	"entgo.io/ent/dialect/sql"

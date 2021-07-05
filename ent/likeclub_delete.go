@@ -3,10 +3,10 @@
 package ent
 
 import (
-	"github.com/khu-dev/khumu-club/ent/likeclub"
-	"github.com/khu-dev/khumu-club/ent/predicate"
 	"context"
 	"fmt"
+	"github.com/khu-dev/khumu-club/ent/likeclub"
+	"github.com/khu-dev/khumu-club/ent/predicate"
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"

@@ -1,12 +1,11 @@
 package config
 
 import (
-
 	"github.com/umi0410/ezconfig"
-    "log"
-    "os"
-    "strings"
-    "time"
+	"log"
+	"os"
+	"strings"
+	"time"
 )
 
 var (
@@ -27,9 +26,9 @@ func init() {
 }
 
 type KhumuConfig struct {
-	Host             string `yaml:"host"`
-	Port             string
-	DB               struct {
+	Host string `yaml:"host"`
+	Port string
+	DB   struct {
 		Kind    string `yaml:"kind"`
 		SQLite3 struct {
 			FilePath string `yaml:"filePath"`
@@ -42,11 +41,11 @@ type KhumuConfig struct {
 			Password     string `yaml:"password"`
 		}
 	}
-	CommandCenterService struct{
+	CommandCenterService struct {
 		Root string
 	}
-	Slack struct{
-		Token string
+	Slack struct {
+		Token   string
 		Channel string
 	}
 }

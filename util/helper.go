@@ -1,13 +1,13 @@
 package util
 
 import (
-    "github.com/form3tech-oss/jwt-go"
-    "github.com/gofiber/fiber/v2"
-    "github.com/khu-dev/khumu-club/data"
-    log "github.com/sirupsen/logrus"
+	"github.com/form3tech-oss/jwt-go"
+	"github.com/gofiber/fiber/v2"
+	"github.com/khu-dev/khumu-club/data"
+	log "github.com/sirupsen/logrus"
 )
 
-func GetRequestUser(c *fiber.Ctx) *data.User{
+func GetRequestUser(c *fiber.Ctx) *data.User {
 	user := c.Locals("user").(*jwt.Token)
 	claims := user.Claims.(jwt.MapClaims)
 	id, ok := claims["user_id"].(string)
@@ -21,7 +21,7 @@ func GetRequestUser(c *fiber.Ctx) *data.User{
 	}
 }
 
-func GetRequestToken(c *fiber.Ctx) string{
+func GetRequestToken(c *fiber.Ctx) string {
 	user := c.Locals("user").(*jwt.Token)
 	return user.Raw
 }

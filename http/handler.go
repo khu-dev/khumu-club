@@ -10,11 +10,10 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-type ClubHandler struct{
-	ClubService *service.ClubService
+type ClubHandler struct {
+	ClubService  *service.ClubService
 	SlackAdapter slack.SlackAdapter
 }
-
 
 func (h *ClubHandler) CreateClub(c *fiber.Ctx) error {
 	user := util.GetRequestUser(c)
@@ -46,9 +45,9 @@ func (h *ClubHandler) CreateClub(c *fiber.Ctx) error {
 	}
 
 	return c.JSON(fiber.Map{
-		"data": club,
-		"message":"",
-		"error_type":"",
+		"data":       club,
+		"message":    "",
+		"error_type": "",
 	})
 }
 
@@ -60,9 +59,9 @@ func (h *ClubHandler) ListClub(c *fiber.Ctx) error {
 	}
 
 	return c.JSON(fiber.Map{
-		"data": clubs,
-		"message":"",
-		"error_type":"",
+		"data":       clubs,
+		"message":    "",
+		"error_type": "",
 	})
 }
 
@@ -82,9 +81,9 @@ func (h *ClubHandler) ClubAddRequest(c *fiber.Ctx) error {
 	log.Info("동아리 추가 요청을 받았습니다.", body)
 
 	return c.JSON(fiber.Map{
-		"data": nil,
-		"message": "동아리 추가를 요청했습니다.",
-		"error_type":"",
+		"data":       nil,
+		"message":    "동아리 추가를 요청했습니다.",
+		"error_type": "",
 	})
 }
 
@@ -104,9 +103,9 @@ func (h *ClubHandler) ClubModifyRequest(c *fiber.Ctx) error {
 	log.Info("동아리 수정 요청을 받았습니다.", body)
 
 	return c.JSON(fiber.Map{
-		"data": nil,
-		"message": "동아리 수정을 요청했습니다.",
-		"error_type":"",
+		"data":       nil,
+		"message":    "동아리 수정을 요청했습니다.",
+		"error_type": "",
 	})
 }
 

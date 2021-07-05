@@ -3,12 +3,12 @@
 package ent
 
 import (
-	"github.com/khu-dev/khumu-club/ent/club"
-	"github.com/khu-dev/khumu-club/ent/likeclub"
-	"github.com/khu-dev/khumu-club/ent/predicate"
 	"context"
 	"errors"
 	"fmt"
+	"github.com/khu-dev/khumu-club/ent/club"
+	"github.com/khu-dev/khumu-club/ent/likeclub"
+	"github.com/khu-dev/khumu-club/ent/predicate"
 	"math"
 
 	"entgo.io/ent/dialect/sql"

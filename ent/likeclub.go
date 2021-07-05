@@ -3,9 +3,9 @@
 package ent
 
 import (
+	"fmt"
 	"github.com/khu-dev/khumu-club/ent/club"
 	"github.com/khu-dev/khumu-club/ent/likeclub"
-	"fmt"
 	"strings"
 	"time"
 

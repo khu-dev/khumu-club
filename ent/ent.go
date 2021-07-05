@@ -3,10 +3,10 @@
 package ent
 
 import (
-	"github.com/khu-dev/khumu-club/ent/club"
-	"github.com/khu-dev/khumu-club/ent/likeclub"
 	"errors"
 	"fmt"
+	"github.com/khu-dev/khumu-club/ent/club"
+	"github.com/khu-dev/khumu-club/ent/likeclub"
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect"
