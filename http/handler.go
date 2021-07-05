@@ -1,42 +1,24 @@
 package http
 
 import (
-	"github.com/form3tech-oss/jwt-go"
 	"github.com/gofiber/fiber/v2"
+	"github.com/khu-dev/khumu-club/adapter/slack"
 	"github.com/khu-dev/khumu-club/data"
 	"github.com/khu-dev/khumu-club/repository"
 	"github.com/khu-dev/khumu-club/service"
+	"github.com/khu-dev/khumu-club/util"
 	log "github.com/sirupsen/logrus"
 )
 
 type ClubHandler struct{
 	ClubService *service.ClubService
+	SlackAdapter slack.SlackAdapter
 }
 
-func GetRequestUser(c *fiber.Ctx) *data.User{
-	a := c.Locals("user")
-	log.Println(a)
-	user := c.Locals("user").(*jwt.Token)
-	claims := user.Claims.(jwt.MapClaims)
-	id, ok := claims["user_id"].(string)
-	if !ok {
-		log.Error("토큰 내의 해당 Claim을 찾을 수 없습니다.")
-		return nil
-	}
-
-	return &data.User{
-		ID: id,
-	}
-}
-
-func GetRequestToken(c *fiber.Ctx) string{
-	user := c.Locals("user").(*jwt.Token)
-	return user.Raw
-}
 
 func (h *ClubHandler) CreateClub(c *fiber.Ctx) error {
-	user := GetRequestUser(c)
-	token := GetRequestToken(c)
+	user := util.GetRequestUser(c)
+	token := util.GetRequestToken(c)
 	user, err := repository.GetUserInfo(token, user.ID)
 	if err != nil {
 		log.Error("유저 정보를 가져오지 못했습니다.")
@@ -80,6 +62,50 @@ func (h *ClubHandler) ListClub(c *fiber.Ctx) error {
 	return c.JSON(fiber.Map{
 		"data": clubs,
 		"message":"",
+		"error_type":"",
+	})
+}
+
+func (h *ClubHandler) ClubAddRequest(c *fiber.Ctx) error {
+	body := &data.ClubAddOrModifyRequestDto{}
+	err := c.BodyParser(body)
+	if err != nil {
+		log.Error(err)
+		return err
+	}
+
+	if err = h.ClubService.ClubAddRequest(c, body); err != nil {
+		log.Error(err)
+		return err
+	}
+
+	log.Info("동아리 추가 요청을 받았습니다.", body)
+
+	return c.JSON(fiber.Map{
+		"data": nil,
+		"message": "동아리 추가를 요청했습니다.",
+		"error_type":"",
+	})
+}
+
+func (h *ClubHandler) ClubModifyRequest(c *fiber.Ctx) error {
+	body := &data.ClubAddOrModifyRequestDto{}
+	err := c.BodyParser(body)
+	if err != nil {
+		log.Error(err)
+		return err
+	}
+
+	if err = h.ClubService.ClubAddRequest(c, body); err != nil {
+		log.Error(err)
+		return err
+	}
+
+	log.Info("동아리 수정 요청을 받았습니다.", body)
+
+	return c.JSON(fiber.Map{
+		"data": nil,
+		"message": "동아리 수정을 요청했습니다.",
 		"error_type":"",
 	})
 }

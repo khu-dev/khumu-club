@@ -20,6 +20,12 @@ type ClubDto struct{
     LikeCount int `json:"like_count"`
 }
 
+// 유저가 동아리를 추가하거나 수정해달라고 보낸 요청의 Body
+type ClubAddOrModifyRequestDto struct{
+    Title string
+    Content string
+}
+
 func MapClubToClubDto(source *ent.Club) *ClubDto {
     output := &ClubDto{
         Name: &source.Name,

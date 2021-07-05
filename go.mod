@@ -12,6 +12,7 @@ require (
 	github.com/gofiber/jwt/v2 v2.2.3
 	github.com/mattn/go-sqlite3 v1.14.6
 	github.com/sirupsen/logrus v1.8.1
+	github.com/slack-go/slack v0.9.1
 	github.com/stretchr/testify v1.7.0
 	github.com/umi0410/ezconfig v0.0.0-20210524051235-5fb1e5782b52
 )

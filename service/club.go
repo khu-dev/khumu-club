@@ -3,8 +3,11 @@ package service
 import (
     "context"
     "errors"
+    "github.com/gofiber/fiber/v2"
+    "github.com/khu-dev/khumu-club/adapter/slack"
     "github.com/khu-dev/khumu-club/data"
     "github.com/khu-dev/khumu-club/ent"
+    "github.com/khu-dev/khumu-club/util"
     log "github.com/sirupsen/logrus"
 )
 
@@ -14,6 +17,7 @@ var (
 
 type ClubService struct{
     DB *ent.Client
+    SlackAdapter slack.SlackAdapter
 }
 
 func (s *ClubService) CreateClub(body *data.ClubDto) (*data.ClubDto, error) {
@@ -57,4 +61,26 @@ func (s *ClubService) ListClub() ([]*data.ClubDto, error) {
     }
 
     return outputs, nil
+}
+
+func (s *ClubService) ClubAddRequest(ctx *fiber.Ctx, body *data.ClubAddOrModifyRequestDto) error {
+    user := util.GetRequestUser(ctx)
+    err := s.SlackAdapter.SendMessage("[동아리 추가 요청]" + body.Title, user.ID, body.Content)
+	if err != nil {
+		log.Error(err)
+		return err
+	}
+
+	return nil
+}
+
+func (s *ClubService) ClubModifyRequest(ctx *fiber.Ctx, body *data.ClubAddOrModifyRequestDto) error {
+    user := util.GetRequestUser(ctx)
+    err := s.SlackAdapter.SendMessage("[동아리 수정 요청]" + body.Title, user.ID, body.Content)
+	if err != nil {
+		log.Error(err)
+		return err
+	}
+
+	return nil
 }

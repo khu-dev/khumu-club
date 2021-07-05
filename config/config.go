@@ -45,4 +45,8 @@ type KhumuConfig struct {
 	CommandCenterService struct{
 		Root string
 	}
+	Slack struct{
+		Token string
+		Channel string
+	}
 }

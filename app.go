@@ -5,19 +5,38 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/logger"
 	"github.com/gofiber/fiber/v2/middleware/recover"
+	"github.com/khu-dev/khumu-club/adapter/slack"
 	"github.com/khu-dev/khumu-club/config"
 	"github.com/khu-dev/khumu-club/http"
 	"github.com/khu-dev/khumu-club/repository"
 	"github.com/khu-dev/khumu-club/service"
 	log "github.com/sirupsen/logrus"
+	"runtime"
 )
+
+func init(){
+    log.SetReportCaller(true)
+	log.SetFormatter(&log.TextFormatter{
+		DisableColors: false,
+		DisableQuote: true,
+		ForceColors: true,
+		// line을 깔끔하게 보여줌.
+		CallerPrettyfier: func(f *runtime.Frame) (string, string) {
+			//filename := strings.Replace(f.File, workingDir + "/", "", -1)
+			filename := f.File
+			return fmt.Sprintf("%s()", f.Function), fmt.Sprintf("%s:%d", filename, f.Line)
+		},
+		FullTimestamp: false,
+		TimestampFormat: "2006/01/03 15:04:05",
+	})
+}
 
 func main() {
 	// Connected with database
 	client := repository.Connect()
-	clubService := &service.ClubService{DB: client}
+	slackAdapter := slack.NewSlackAdapter(config.Config.Slack.Token, config.Config.Slack.Channel)
+	clubService := &service.ClubService{DB: client, SlackAdapter: slackAdapter}
 	clubHandler := &http.ClubHandler{ClubService: clubService}
-
 	// Create fiber app
 	app := fiber.New(fiber.Config{})
 
@@ -28,19 +47,13 @@ func main() {
 	app.Use(http.NewJWTMiddleware())
 
 	// Create a /api/v1 endpoint
-	apiv1 := app.Group("/api")
+	api := app.Group("/api")
 
 	// Bind handlers
-	apiv1.Post("/clubs", clubHandler.CreateClub)
-	apiv1.Get("/clubs", clubHandler.ListClub)
-
-	app.Get("/users/:id", func(ctx *fiber.Ctx) error {
-		userId := ctx.Params("id")
-		// ... 기타 작업 생략
-		return ctx.JSON(map[string]string{
-			"userId": userId,
-		})
-	})
+	api.Post("/clubs", clubHandler.CreateClub)
+	api.Get("/clubs", clubHandler.ListClub)
+	api.Post("clubs/add-request", clubHandler.ClubAddRequest)
+	api.Post("clubs/modify-request", clubHandler.ClubModifyRequest)
 
 	//v1.Post("/users", handlers.UserCreate)
 
