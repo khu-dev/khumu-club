@@ -9,6 +9,7 @@ import (
 	"github.com/khu-dev/khumu-club/ent"
 	"github.com/khu-dev/khumu-club/util"
 	log "github.com/sirupsen/logrus"
+	"math/rand"
 )
 
 var (
@@ -57,12 +58,36 @@ func (s *ClubService) CreateClub(body *data.ClubDto) (*data.ClubDto, error) {
 }
 func (s *ClubService) ListClub() ([]*data.ClubDto, error) {
 	results := s.DB.Club.Query().AllX(context.TODO())
-	outputs := make([]*data.ClubDto, len(results))
-	for i, club := range results {
+	sortedResults := s.SortClubList(results)
+	outputs := make([]*data.ClubDto, len(sortedResults))
+	for i, club := range sortedResults {
 		outputs[i] = data.MapClubToClubDto(club)
 	}
 
 	return outputs, nil
+}
+
+// 단조로운 동아리 리스트를 없애기 위해 순서를 섞어준다.
+func (s *ClubService) SortClubList(src []*ent.Club) []*ent.Club {
+	recommendedClubs := make([]*ent.Club, 0)
+	normalClubs := make([]*ent.Club, 0)
+	for _, club := range src {
+		if club.Recommended {
+			recommendedClubs = append(recommendedClubs, club)
+		} else {
+			normalClubs = append(normalClubs, club)
+		}
+	}
+
+	output := make([]*ent.Club, len(src))
+	for i, rec := range recommendedClubs {
+		output[i] = rec
+	}
+	for i, randomIndex := range rand.Perm(len(normalClubs)) {
+		output[len(recommendedClubs)+i] = normalClubs[randomIndex]
+	}
+
+	return output
 }
 
 func (s *ClubService) ClubAddRequest(ctx *fiber.Ctx, body *data.ClubAddOrModifyRequestDto) error {

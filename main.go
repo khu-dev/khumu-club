@@ -11,10 +11,14 @@ import (
 	"github.com/khu-dev/khumu-club/repository"
 	"github.com/khu-dev/khumu-club/service"
 	log "github.com/sirupsen/logrus"
+	"math/rand"
 	"runtime"
+	"time"
 )
 
 func init() {
+	rand.Seed(time.Now().Unix())
+
 	log.SetReportCaller(true)
 	log.SetFormatter(&log.TextFormatter{
 		DisableColors: false,
@@ -26,7 +30,7 @@ func init() {
 			filename := f.File
 			return fmt.Sprintf("%s()", f.Function), fmt.Sprintf("%s:%d", filename, f.Line)
 		},
-		FullTimestamp:   false,
+		FullTimestamp:   true,
 		TimestampFormat: "2006/01/03 15:04:05",
 	})
 }
