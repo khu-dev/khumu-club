@@ -1,0 +1,15 @@
+port: 포트 번호
+db:
+  kind: mysql
+  mysql:
+    host: 호스트 ip or domain name
+    port: 포트 번호
+    databaseName: 사용할 데이터베이스 이름
+    user: 사용자
+    password: 패스워드
+commandCenterService:
+  root: 유저 조회를 위해 사용할 command center 마이크로서비스의 root url
+#  root: http://localhost:8000/api
+slack:
+  token: 슬랙 봇 토큰
+  channel: 슬랙 봇이 메시지를 남길 채널명
