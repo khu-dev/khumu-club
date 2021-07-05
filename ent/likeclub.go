@@ -4,12 +4,12 @@ package ent
 
 import (
 	"fmt"
-	"github.com/khu-dev/khumu-club/ent/club"
-	"github.com/khu-dev/khumu-club/ent/likeclub"
 	"strings"
 	"time"
 
 	"entgo.io/ent/dialect/sql"
+	"github.com/khu-dev/khumu-club/ent/club"
+	"github.com/khu-dev/khumu-club/ent/likeclub"
 )
 
 // LikeClub is the model entity for the LikeClub schema.

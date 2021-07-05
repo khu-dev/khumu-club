@@ -13,6 +13,10 @@ import (
 func init() {
 	clubFields := schema.Club{}.Fields()
 	_ = clubFields
+	// clubDescDescription is the schema descriptor for description field.
+	clubDescDescription := clubFields[2].Descriptor()
+	// club.DescriptionValidator is a validator for the "description" field. It is called by the builders before save.
+	club.DescriptionValidator = clubDescDescription.Validators[0].(func(string) error)
 	// clubDescRecommended is the schema descriptor for recommended field.
 	clubDescRecommended := clubFields[10].Descriptor()
 	// club.DefaultRecommended holds the default value on creation for the recommended field.

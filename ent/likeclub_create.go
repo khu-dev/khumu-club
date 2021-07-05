@@ -6,12 +6,12 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/khu-dev/khumu-club/ent/club"
-	"github.com/khu-dev/khumu-club/ent/likeclub"
 	"time"
 
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"github.com/khu-dev/khumu-club/ent/club"
+	"github.com/khu-dev/khumu-club/ent/likeclub"
 )
 
 // LikeClubCreate is the builder for creating a LikeClub entity.

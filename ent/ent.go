@@ -5,13 +5,13 @@ package ent
 import (
 	"errors"
 	"fmt"
-	"github.com/khu-dev/khumu-club/ent/club"
-	"github.com/khu-dev/khumu-club/ent/likeclub"
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect"
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
+	"github.com/khu-dev/khumu-club/ent/club"
+	"github.com/khu-dev/khumu-club/ent/likeclub"
 )
 
 // ent aliases to avoid import conflicts in user's code.

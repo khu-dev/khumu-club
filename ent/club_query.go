@@ -7,14 +7,14 @@ import (
 	"database/sql/driver"
 	"errors"
 	"fmt"
-	"github.com/khu-dev/khumu-club/ent/club"
-	"github.com/khu-dev/khumu-club/ent/likeclub"
-	"github.com/khu-dev/khumu-club/ent/predicate"
 	"math"
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"github.com/khu-dev/khumu-club/ent/club"
+	"github.com/khu-dev/khumu-club/ent/likeclub"
+	"github.com/khu-dev/khumu-club/ent/predicate"
 )
 
 // ClubQuery is the builder for querying Club entities.

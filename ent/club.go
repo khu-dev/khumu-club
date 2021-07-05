@@ -5,10 +5,10 @@ package ent
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/khu-dev/khumu-club/ent/club"
 	"strings"
 
 	"entgo.io/ent/dialect/sql"
+	"github.com/khu-dev/khumu-club/ent/club"
 )
 
 // Club is the model entity for the Club schema.

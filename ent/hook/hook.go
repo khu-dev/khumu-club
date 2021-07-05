@@ -5,6 +5,7 @@ package hook
 import (
 	"context"
 	"fmt"
+
 	"github.com/khu-dev/khumu-club/ent"
 )
 

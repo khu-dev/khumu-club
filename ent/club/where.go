@@ -3,10 +3,9 @@
 package club
 
 import (
-	"github.com/khu-dev/khumu-club/ent/predicate"
-
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
+	"github.com/khu-dev/khumu-club/ent/predicate"
 )
 
 // ID filters vertices based on their ID field.

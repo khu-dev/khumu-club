@@ -13,7 +13,7 @@ var (
 		{Name: "id", Type: field.TypeInt, Increment: true},
 		{Name: "name", Type: field.TypeString},
 		{Name: "summary", Type: field.TypeString},
-		{Name: "description", Type: field.TypeString},
+		{Name: "description", Type: field.TypeString, Size: 1000},
 		{Name: "hashtags", Type: field.TypeJSON},
 		{Name: "images", Type: field.TypeJSON, Nullable: true},
 		{Name: "homepage", Type: field.TypeString, Nullable: true},

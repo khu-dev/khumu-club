@@ -21,6 +21,8 @@ type ClubService struct {
 }
 
 func (s *ClubService) CreateClub(body *data.ClubDto) (*data.ClubDto, error) {
+	log.Info("새로운 동아리를 생성합니다.")
+	defer log.Info("새로운 동아리 생성을 마칩니다.")
 	if body.Name == nil ||
 		body.Summary == nil ||
 		body.Description == nil {

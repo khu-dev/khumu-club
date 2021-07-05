@@ -69,6 +69,8 @@ func ValidColumn(column string) bool {
 }
 
 var (
+	// DescriptionValidator is a validator for the "description" field. It is called by the builders before save.
+	DescriptionValidator func(string) error
 	// DefaultRecommended holds the default value on creation for the "recommended" field.
 	DefaultRecommended bool
 )

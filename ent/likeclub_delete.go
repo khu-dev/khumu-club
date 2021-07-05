@@ -5,12 +5,12 @@ package ent
 import (
 	"context"
 	"fmt"
-	"github.com/khu-dev/khumu-club/ent/likeclub"
-	"github.com/khu-dev/khumu-club/ent/predicate"
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"github.com/khu-dev/khumu-club/ent/likeclub"
+	"github.com/khu-dev/khumu-club/ent/predicate"
 )
 
 // LikeClubDelete is the builder for deleting a LikeClub entity.

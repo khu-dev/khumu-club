@@ -5,11 +5,12 @@ package ent
 import (
 	"context"
 	"fmt"
+	"sync"
+	"time"
+
 	"github.com/khu-dev/khumu-club/ent/club"
 	"github.com/khu-dev/khumu-club/ent/likeclub"
 	"github.com/khu-dev/khumu-club/ent/predicate"
-	"sync"
-	"time"
 
 	"entgo.io/ent"
 )

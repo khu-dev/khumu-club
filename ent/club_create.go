@@ -6,11 +6,11 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/khu-dev/khumu-club/ent/club"
-	"github.com/khu-dev/khumu-club/ent/likeclub"
 
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"github.com/khu-dev/khumu-club/ent/club"
+	"github.com/khu-dev/khumu-club/ent/likeclub"
 )
 
 // ClubCreate is the builder for creating a Club entity.
@@ -217,6 +217,11 @@ func (cc *ClubCreate) check() error {
 	}
 	if _, ok := cc.mutation.Description(); !ok {
 		return &ValidationError{Name: "description", err: errors.New("ent: missing required field \"description\"")}
+	}
+	if v, ok := cc.mutation.Description(); ok {
+		if err := club.DescriptionValidator(v); err != nil {
+			return &ValidationError{Name: "description", err: fmt.Errorf("ent: validator failed for field \"description\": %w", err)}
+		}
 	}
 	if _, ok := cc.mutation.Hashtags(); !ok {
 		return &ValidationError{Name: "hashtags", err: errors.New("ent: missing required field \"hashtags\"")}

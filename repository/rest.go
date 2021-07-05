@@ -15,6 +15,8 @@ var (
 )
 
 func GetUserInfo(token, username string) (*data.User, error) {
+	log.Info("khumu-command-center를 이용해 유저 정보를 조회합니다.")
+	defer log.Info("khumu-command-center에서 유저 정보를 완료했습니다.")
 	resp, err := resty.New().
 		R().
 		SetAuthToken(token).

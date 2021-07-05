@@ -4,6 +4,7 @@ package enttest
 
 import (
 	"context"
+
 	"github.com/khu-dev/khumu-club/ent"
 	// required by schema hooks.
 	_ "github.com/khu-dev/khumu-club/ent/runtime"
