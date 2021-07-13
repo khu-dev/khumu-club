@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/gofiber/fiber/v2/middleware/logger"
 	"github.com/gofiber/fiber/v2/middleware/recover"
 	"github.com/khu-dev/khumu-club/adapter/slack"
@@ -43,7 +44,9 @@ func main() {
 	clubHandler := &http.ClubHandler{ClubService: clubService}
 	// Create fiber app
 	app := fiber.New(fiber.Config{})
-
+	app.Use(cors.New(cors.Config{
+		AllowOrigins: "*",
+	}))
 	// Middleware
 	app.Use(recover.New())
 	app.Use(logger.New())
