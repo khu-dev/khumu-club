@@ -37,7 +37,7 @@ type ClubMutation struct {
 	name          *string
 	summary       *string
 	description   *string
-	hashtags      *[]string
+	categories    *[]string
 	images        *[]string
 	homepage      *string
 	instagram     *string
@@ -241,40 +241,40 @@ func (m *ClubMutation) ResetDescription() {
 	m.description = nil
 }
 
-// SetHashtags sets the "hashtags" field.
-func (m *ClubMutation) SetHashtags(s []string) {
-	m.hashtags = &s
+// SetCategories sets the "categories" field.
+func (m *ClubMutation) SetCategories(s []string) {
+	m.categories = &s
 }
 
-// Hashtags returns the value of the "hashtags" field in the mutation.
-func (m *ClubMutation) Hashtags() (r []string, exists bool) {
-	v := m.hashtags
+// Categories returns the value of the "categories" field in the mutation.
+func (m *ClubMutation) Categories() (r []string, exists bool) {
+	v := m.categories
 	if v == nil {
 		return
 	}
 	return *v, true
 }
 
-// OldHashtags returns the old "hashtags" field's value of the Club entity.
+// OldCategories returns the old "categories" field's value of the Club entity.
 // If the Club object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *ClubMutation) OldHashtags(ctx context.Context) (v []string, err error) {
+func (m *ClubMutation) OldCategories(ctx context.Context) (v []string, err error) {
 	if !m.op.Is(OpUpdateOne) {
-		return v, fmt.Errorf("OldHashtags is only allowed on UpdateOne operations")
+		return v, fmt.Errorf("OldCategories is only allowed on UpdateOne operations")
 	}
 	if m.id == nil || m.oldValue == nil {
-		return v, fmt.Errorf("OldHashtags requires an ID field in the mutation")
+		return v, fmt.Errorf("OldCategories requires an ID field in the mutation")
 	}
 	oldValue, err := m.oldValue(ctx)
 	if err != nil {
-		return v, fmt.Errorf("querying old value for OldHashtags: %w", err)
+		return v, fmt.Errorf("querying old value for OldCategories: %w", err)
 	}
-	return oldValue.Hashtags, nil
+	return oldValue.Categories, nil
 }
 
-// ResetHashtags resets all changes to the "hashtags" field.
-func (m *ClubMutation) ResetHashtags() {
-	m.hashtags = nil
+// ResetCategories resets all changes to the "categories" field.
+func (m *ClubMutation) ResetCategories() {
+	m.categories = nil
 }
 
 // SetImages sets the "images" field.
@@ -684,8 +684,8 @@ func (m *ClubMutation) Fields() []string {
 	if m.description != nil {
 		fields = append(fields, club.FieldDescription)
 	}
-	if m.hashtags != nil {
-		fields = append(fields, club.FieldHashtags)
+	if m.categories != nil {
+		fields = append(fields, club.FieldCategories)
 	}
 	if m.images != nil {
 		fields = append(fields, club.FieldImages)
@@ -722,8 +722,8 @@ func (m *ClubMutation) Field(name string) (ent.Value, bool) {
 		return m.Summary()
 	case club.FieldDescription:
 		return m.Description()
-	case club.FieldHashtags:
-		return m.Hashtags()
+	case club.FieldCategories:
+		return m.Categories()
 	case club.FieldImages:
 		return m.Images()
 	case club.FieldHomepage:
@@ -753,8 +753,8 @@ func (m *ClubMutation) OldField(ctx context.Context, name string) (ent.Value, er
 		return m.OldSummary(ctx)
 	case club.FieldDescription:
 		return m.OldDescription(ctx)
-	case club.FieldHashtags:
-		return m.OldHashtags(ctx)
+	case club.FieldCategories:
+		return m.OldCategories(ctx)
 	case club.FieldImages:
 		return m.OldImages(ctx)
 	case club.FieldHomepage:
@@ -799,12 +799,12 @@ func (m *ClubMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetDescription(v)
 		return nil
-	case club.FieldHashtags:
+	case club.FieldCategories:
 		v, ok := value.([]string)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
-		m.SetHashtags(v)
+		m.SetCategories(v)
 		return nil
 	case club.FieldImages:
 		v, ok := value.([]string)
@@ -952,8 +952,8 @@ func (m *ClubMutation) ResetField(name string) error {
 	case club.FieldDescription:
 		m.ResetDescription()
 		return nil
-	case club.FieldHashtags:
-		m.ResetHashtags()
+	case club.FieldCategories:
+		m.ResetCategories()
 		return nil
 	case club.FieldImages:
 		m.ResetImages()

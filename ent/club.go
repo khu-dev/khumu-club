@@ -22,8 +22,8 @@ type Club struct {
 	Summary string `json:"summary,omitempty"`
 	// Description holds the value of the "description" field.
 	Description string `json:"description,omitempty"`
-	// Hashtags holds the value of the "hashtags" field.
-	Hashtags []string `json:"hashtags,omitempty"`
+	// Categories holds the value of the "categories" field.
+	Categories []string `json:"categories,omitempty"`
 	// Images holds the value of the "images" field.
 	Images []string `json:"images,omitempty"`
 	// Homepage holds the value of the "homepage" field.
@@ -66,7 +66,7 @@ func (*Club) scanValues(columns []string) ([]interface{}, error) {
 	values := make([]interface{}, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case club.FieldHashtags, club.FieldImages:
+		case club.FieldCategories, club.FieldImages:
 			values[i] = new([]byte)
 		case club.FieldRecommended:
 			values[i] = new(sql.NullBool)
@@ -113,13 +113,13 @@ func (c *Club) assignValues(columns []string, values []interface{}) error {
 			} else if value.Valid {
 				c.Description = value.String
 			}
-		case club.FieldHashtags:
+		case club.FieldCategories:
 
 			if value, ok := values[i].(*[]byte); !ok {
-				return fmt.Errorf("unexpected type %T for field hashtags", values[i])
+				return fmt.Errorf("unexpected type %T for field categories", values[i])
 			} else if value != nil && len(*value) > 0 {
-				if err := json.Unmarshal(*value, &c.Hashtags); err != nil {
-					return fmt.Errorf("unmarshal field hashtags: %w", err)
+				if err := json.Unmarshal(*value, &c.Categories); err != nil {
+					return fmt.Errorf("unmarshal field categories: %w", err)
 				}
 			}
 		case club.FieldImages:
@@ -206,8 +206,8 @@ func (c *Club) String() string {
 	builder.WriteString(c.Summary)
 	builder.WriteString(", description=")
 	builder.WriteString(c.Description)
-	builder.WriteString(", hashtags=")
-	builder.WriteString(fmt.Sprintf("%v", c.Hashtags))
+	builder.WriteString(", categories=")
+	builder.WriteString(fmt.Sprintf("%v", c.Categories))
 	builder.WriteString(", images=")
 	builder.WriteString(fmt.Sprintf("%v", c.Images))
 	builder.WriteString(", homepage=")

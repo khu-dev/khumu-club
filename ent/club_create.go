@@ -38,9 +38,9 @@ func (cc *ClubCreate) SetDescription(s string) *ClubCreate {
 	return cc
 }
 
-// SetHashtags sets the "hashtags" field.
-func (cc *ClubCreate) SetHashtags(s []string) *ClubCreate {
-	cc.mutation.SetHashtags(s)
+// SetCategories sets the "categories" field.
+func (cc *ClubCreate) SetCategories(s []string) *ClubCreate {
+	cc.mutation.SetCategories(s)
 	return cc
 }
 
@@ -223,8 +223,8 @@ func (cc *ClubCreate) check() error {
 			return &ValidationError{Name: "description", err: fmt.Errorf("ent: validator failed for field \"description\": %w", err)}
 		}
 	}
-	if _, ok := cc.mutation.Hashtags(); !ok {
-		return &ValidationError{Name: "hashtags", err: errors.New("ent: missing required field \"hashtags\"")}
+	if _, ok := cc.mutation.Categories(); !ok {
+		return &ValidationError{Name: "categories", err: errors.New("ent: missing required field \"categories\"")}
 	}
 	if _, ok := cc.mutation.Recommended(); !ok {
 		return &ValidationError{Name: "recommended", err: errors.New("ent: missing required field \"recommended\"")}
@@ -280,13 +280,13 @@ func (cc *ClubCreate) createSpec() (*Club, *sqlgraph.CreateSpec) {
 		})
 		_node.Description = value
 	}
-	if value, ok := cc.mutation.Hashtags(); ok {
+	if value, ok := cc.mutation.Categories(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
 			Type:   field.TypeJSON,
 			Value:  value,
-			Column: club.FieldHashtags,
+			Column: club.FieldCategories,
 		})
-		_node.Hashtags = value
+		_node.Categories = value
 	}
 	if value, ok := cc.mutation.Images(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{

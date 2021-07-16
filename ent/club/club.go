@@ -13,8 +13,8 @@ const (
 	FieldSummary = "summary"
 	// FieldDescription holds the string denoting the description field in the database.
 	FieldDescription = "description"
-	// FieldHashtags holds the string denoting the hashtags field in the database.
-	FieldHashtags = "hashtags"
+	// FieldCategories holds the string denoting the categories field in the database.
+	FieldCategories = "categories"
 	// FieldImages holds the string denoting the images field in the database.
 	FieldImages = "images"
 	// FieldHomepage holds the string denoting the homepage field in the database.
@@ -48,7 +48,7 @@ var Columns = []string{
 	FieldName,
 	FieldSummary,
 	FieldDescription,
-	FieldHashtags,
+	FieldCategories,
 	FieldImages,
 	FieldHomepage,
 	FieldInstagram,

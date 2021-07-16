@@ -52,8 +52,22 @@ func (h *ClubHandler) CreateClub(c *fiber.Ctx) error {
 }
 
 // UserGet returns a user
-func (h *ClubHandler) ListClub(c *fiber.Ctx) error {
-	clubs, err := h.ClubService.ListClub()
+func (h *ClubHandler) ListClubs(c *fiber.Ctx) error {
+	category := c.Query("category", "")
+	log.Info("category: ", category)
+	if len(category) != 0 {
+		clubs, err := h.ClubService.ListClubsByCategoryContaining(category)
+		if err != nil {
+			log.Error(err)
+		}
+		return c.JSON(fiber.Map{
+			"data":       clubs,
+			"message":    err,
+			"error_type": "",
+		})
+	}
+	clubs, err := h.ClubService.ListClubs()
+
 	if err != nil {
 		return c.Status(500).SendString(err.Error())
 	}
@@ -106,6 +120,15 @@ func (h *ClubHandler) ClubModifyRequest(c *fiber.Ctx) error {
 		"data":       nil,
 		"message":    "동아리 수정을 요청했습니다.",
 		"error_type": "",
+	})
+}
+
+func (h *ClubHandler) ListCategories(c *fiber.Ctx) error {
+
+	return c.JSON(fiber.Map{
+		"data":       h.ListCategories(c),
+		"message":    nil,
+		"error_type": nil,
 	})
 }
 

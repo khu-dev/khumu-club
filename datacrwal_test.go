@@ -41,7 +41,7 @@ func TestCrawlAndSave(t *testing.T) {
 		club.Summary = strings.TrimSpace(strings.TrimPrefix(club.Summary, club.Category))
 		t.Log(club.Category, club.Summary)
 
-		//club, err := connect.Club.Create().SetName(club.Name).SetHashtags([]string{club.Category}).SetSummary(club.Summary).SetDescription(club.Content).Save(context.TODO())
+		//club, err := connect.Club.Create().SetName(club.Name).SetCategories([]string{club.Category}).SetSummary(club.Summary).SetDescription(club.Content).Save(context.TODO())
 		//assert.NoError(t, err)
 		//log.Info(club)
 	}

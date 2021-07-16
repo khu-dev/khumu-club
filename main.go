@@ -61,9 +61,10 @@ func main() {
 
 	// Bind handlers
 	api.Post("/clubs", clubHandler.CreateClub)
-	api.Get("/clubs", clubHandler.ListClub)
+	api.Get("/clubs", clubHandler.ListClubs)
 	api.Post("/clubs/add-request", clubHandler.ClubAddRequest)
 	api.Post("/clubs/modify-request", clubHandler.ClubModifyRequest)
+	api.Post("/club-categories", clubHandler.ListCategories)
 
 	//v1.Post("/users", handlers.UserCreate)
 

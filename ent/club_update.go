@@ -45,9 +45,9 @@ func (cu *ClubUpdate) SetDescription(s string) *ClubUpdate {
 	return cu
 }
 
-// SetHashtags sets the "hashtags" field.
-func (cu *ClubUpdate) SetHashtags(s []string) *ClubUpdate {
-	cu.mutation.SetHashtags(s)
+// SetCategories sets the "categories" field.
+func (cu *ClubUpdate) SetCategories(s []string) *ClubUpdate {
+	cu.mutation.SetCategories(s)
 	return cu
 }
 
@@ -324,11 +324,11 @@ func (cu *ClubUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Column: club.FieldDescription,
 		})
 	}
-	if value, ok := cu.mutation.Hashtags(); ok {
+	if value, ok := cu.mutation.Categories(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeJSON,
 			Value:  value,
-			Column: club.FieldHashtags,
+			Column: club.FieldCategories,
 		})
 	}
 	if value, ok := cu.mutation.Images(); ok {
@@ -507,9 +507,9 @@ func (cuo *ClubUpdateOne) SetDescription(s string) *ClubUpdateOne {
 	return cuo
 }
 
-// SetHashtags sets the "hashtags" field.
-func (cuo *ClubUpdateOne) SetHashtags(s []string) *ClubUpdateOne {
-	cuo.mutation.SetHashtags(s)
+// SetCategories sets the "categories" field.
+func (cuo *ClubUpdateOne) SetCategories(s []string) *ClubUpdateOne {
+	cuo.mutation.SetCategories(s)
 	return cuo
 }
 
@@ -810,11 +810,11 @@ func (cuo *ClubUpdateOne) sqlSave(ctx context.Context) (_node *Club, err error) 
 			Column: club.FieldDescription,
 		})
 	}
-	if value, ok := cuo.mutation.Hashtags(); ok {
+	if value, ok := cuo.mutation.Categories(); ok {
 		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
 			Type:   field.TypeJSON,
 			Value:  value,
-			Column: club.FieldHashtags,
+			Column: club.FieldCategories,
 		})
 	}
 	if value, ok := cuo.mutation.Images(); ok {

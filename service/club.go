@@ -2,6 +2,8 @@ package service
 
 import (
 	"context"
+	"entgo.io/ent/dialect/sql"
+	"entgo.io/ent/dialect/sql/sqljson"
 	"errors"
 	"github.com/gofiber/fiber/v2"
 	"github.com/khu-dev/khumu-club/adapter/slack"
@@ -30,8 +32,8 @@ func (s *ClubService) CreateClub(body *data.ClubDto) (*data.ClubDto, error) {
 		log.Error(ErrNoRequiredField)
 		return nil, ErrNoRequiredField
 	}
-	if body.Hashtags == nil {
-		body.Hashtags = []string{}
+	if body.Categories == nil {
+		body.Categories = []string{}
 	}
 	if body.Images == nil {
 		body.Images = []string{}
@@ -40,7 +42,7 @@ func (s *ClubService) CreateClub(body *data.ClubDto) (*data.ClubDto, error) {
 		SetName(*body.Name).
 		SetSummary(*body.Summary).
 		SetDescription(*body.Description).
-		SetHashtags(body.Hashtags).
+		SetCategories(body.Categories).
 		SetImages(body.Images).
 		SetNillableHomepage(body.Homepage).
 		SetNillableInstagram(body.Instagram).
@@ -56,8 +58,28 @@ func (s *ClubService) CreateClub(body *data.ClubDto) (*data.ClubDto, error) {
 
 	return data.MapClubToClubDto(club), err
 }
-func (s *ClubService) ListClub() ([]*data.ClubDto, error) {
+func (s *ClubService) ListClubs() ([]*data.ClubDto, error) {
 	results := s.DB.Club.Query().AllX(context.TODO())
+	sortedResults := s.SortClubList(results)
+	outputs := make([]*data.ClubDto, len(sortedResults))
+	for i, club := range sortedResults {
+		outputs[i] = data.MapClubToClubDto(club)
+	}
+
+	return outputs, nil
+}
+
+func (s *ClubService) ListClubsByCategoryContaining(category string) ([]*data.ClubDto, error) {
+	log.Info("카테고리가 포함된 동아리 검색")
+	results, err := s.DB.Club.Query().Where(func(selector *sql.Selector) {
+		selector.Where(sqljson.ValueContains("categories", category))
+
+	}).All(context.TODO())
+	if err != nil {
+		log.Error(err)
+		return nil, err
+	}
+
 	sortedResults := s.SortClubList(results)
 	outputs := make([]*data.ClubDto, len(sortedResults))
 	for i, club := range sortedResults {
@@ -110,4 +132,20 @@ func (s *ClubService) ClubModifyRequest(ctx *fiber.Ctx, body *data.ClubAddOrModi
 	}
 
 	return nil
+}
+
+func (s *ClubService) ListCategories(ctx *fiber.Ctx) []string {
+	// 그냥 코드 자체로 간단히 관리함.
+	categories := []string{
+		"연행",
+		"종교",
+		"체육",
+		"전시창작",
+		"취미교양",
+		"체육",
+		"학술",
+		"종교",
+		"사회",
+	}
+	return categories
 }

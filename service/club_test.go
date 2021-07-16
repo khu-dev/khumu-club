@@ -22,12 +22,12 @@ func TestClubService_CreateClub(t *testing.T) {
 		Summary:     pointer.ToString("이런 저런 서비스를 개발해나가는 동아리 입니다."),
 		Description: pointer.ToString("이런 저런 서비스를 개발해나가는 동아리 입니다.이런 저런 서비스를 개발해나가는 동아리 입니다.\n\n이런 저런 서비스를 개발해나가는 동아리 입니다."),
 		Email:       pointer.ToString("dev.umijs@gmail.com"),
-		Hashtags:    hashTags,
+		Categories:  hashTags,
 	}
 	newClub, err := service.CreateClub(body)
 	assert.NoError(t, err)
-	assert.Len(t, newClub.Hashtags, 3)
-	for i, tag := range newClub.Hashtags {
+	assert.Len(t, newClub.Categories, 3)
+	for i, tag := range newClub.Categories {
 		assert.Equal(t, hashTags[i], tag)
 	}
 }
@@ -42,12 +42,12 @@ func TestClubService_ListClub(t *testing.T) {
 		Summary:     pointer.ToString("이런 저런 서비스를 개발해나가는 동아리 입니다."),
 		Description: pointer.ToString("이런 저런 서비스를 개발해나가는 동아리 입니다.이런 저런 서비스를 개발해나가는 동아리 입니다.\n\n이런 저런 서비스를 개발해나가는 동아리 입니다."),
 		Email:       pointer.ToString("dev.umijs@gmail.com"),
-		Hashtags:    hashTags,
+		Categories:  hashTags,
 	}
 	_, err := service.CreateClub(body)
 	assert.NoError(t, err)
 
-	results, err := service.ListClub()
+	results, err := service.ListClubs()
 	assert.NoError(t, err)
 	assert.Len(t, results, 1)
 }
@@ -62,7 +62,7 @@ func TestClubService_ListClub_소트(t *testing.T) {
 		Summary:     pointer.ToString("이런 저런 서비스를 개발해나가는 동아리 입니다."),
 		Description: pointer.ToString("이런 저런 서비스를 개발해나가는 동아리 입니다.이런 저런 서비스를 개발해나가는 동아리 입니다.\n\n이런 저런 서비스를 개발해나가는 동아리 입니다."),
 		Email:       pointer.ToString("dev.umijs@gmail.com"),
-		Hashtags:    hashTags,
+		Categories:  hashTags,
 	}
 	for i := 0; i < 10; i++ {
 		body := defaultBody
@@ -73,13 +73,13 @@ func TestClubService_ListClub_소트(t *testing.T) {
 		assert.NoError(t, err)
 	}
 
-	results, err := service.ListClub()
+	results, err := service.ListClubs()
 	assert.NoError(t, err)
 	for i := 0; i < 3; i++ {
 		assert.True(t, *results[i].Recommended)
 	}
 
-	results2, err := service.ListClub()
+	results2, err := service.ListClubs()
 	assert.NoError(t, err)
 	isAllSame := true
 

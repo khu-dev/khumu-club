@@ -9,7 +9,7 @@ type ClubDto struct {
 	Name        *string  `json:"name"`
 	Summary     *string  `json:"summary"`
 	Description *string  `json:"description"`
-	Hashtags    []string `json:"hashtags"`
+	Categories  []string `json:"categories"`
 	Images      []string `json:"images"`
 	Homepage    *string  `json:"homepage"`
 	Instagram   *string  `json:"instagram"`
@@ -33,7 +33,7 @@ func MapClubToClubDto(source *ent.Club) *ClubDto {
 		Name:        &source.Name,
 		Summary:     &source.Summary,
 		Description: &source.Description,
-		Hashtags:    source.Hashtags,
+		Categories:  source.Categories,
 		Images:      source.Images,
 		Homepage:    String2StringPtr(source.Homepage, true),
 		Instagram:   String2StringPtr(source.Instagram, true),

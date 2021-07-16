@@ -17,7 +17,7 @@ func (Club) Fields() []ent.Field {
 		field.String("name"),
 		field.String("summary"),
 		field.String("description").MaxLen(1000),
-		field.Strings("hashtags"),
+		field.Strings("categories"),
 		field.Strings("images").Optional(),
 		field.String("homepage").Optional(),
 		field.String("instagram").Optional(),
