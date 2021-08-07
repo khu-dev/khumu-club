@@ -126,7 +126,7 @@ func (h *ClubHandler) ClubModifyRequest(c *fiber.Ctx) error {
 func (h *ClubHandler) ListCategories(c *fiber.Ctx) error {
 
 	return c.JSON(fiber.Map{
-		"data":       h.ListCategories(c),
+		"data":       h.ClubService.ListCategories(c),
 		"message":    nil,
 		"error_type": nil,
 	})
