@@ -1,6 +1,7 @@
 package service
 
 import (
+	"context"
 	"github.com/AlekSi/pointer"
 	"github.com/khu-dev/khumu-club/data"
 	"github.com/khu-dev/khumu-club/repository"
@@ -16,19 +17,26 @@ func TestClubService_CreateClub(t *testing.T) {
 	service := NewTestClubService()
 	defer service.DB.Close()
 
-	hashTags := []string{"개발", "스타트업", "디자인"}
+	categories := []string{"개발", "스타트업", "디자인"}
+	for _, ctg := range categories {
+		_, err := service.DB.Category.Create().
+			SetID(ctg).
+			Save(context.TODO())
+		assert.NoError(t, err)
+	}
+
 	body := &data.ClubDto{
 		Name:        pointer.ToString("쿠뮤 개발 동아리"),
 		Summary:     pointer.ToString("이런 저런 서비스를 개발해나가는 동아리 입니다."),
 		Description: pointer.ToString("이런 저런 서비스를 개발해나가는 동아리 입니다.이런 저런 서비스를 개발해나가는 동아리 입니다.\n\n이런 저런 서비스를 개발해나가는 동아리 입니다."),
 		Email:       pointer.ToString("dev.umijs@gmail.com"),
-		Categories:  hashTags,
+		Categories:  categories,
 	}
 	newClub, err := service.CreateClub(body)
 	assert.NoError(t, err)
 	assert.Len(t, newClub.Categories, 3)
-	for i, tag := range newClub.Categories {
-		assert.Equal(t, hashTags[i], tag)
+	for _, category := range newClub.Categories {
+		assert.Contains(t, categories, category)
 	}
 }
 
@@ -36,13 +44,19 @@ func TestClubService_ListClub(t *testing.T) {
 	service := NewTestClubService()
 	defer service.DB.Close()
 
-	hashTags := []string{"개발", "스타트업", "디자인"}
+	categories := []string{"개발", "스타트업", "디자인"}
+	for _, ctg := range categories {
+		_, err := service.DB.Category.Create().
+			SetID(ctg).
+			Save(context.TODO())
+		assert.NoError(t, err)
+	}
 	body := &data.ClubDto{
 		Name:        pointer.ToString("쿠뮤 개발 동아리"),
 		Summary:     pointer.ToString("이런 저런 서비스를 개발해나가는 동아리 입니다."),
 		Description: pointer.ToString("이런 저런 서비스를 개발해나가는 동아리 입니다.이런 저런 서비스를 개발해나가는 동아리 입니다.\n\n이런 저런 서비스를 개발해나가는 동아리 입니다."),
 		Email:       pointer.ToString("dev.umijs@gmail.com"),
-		Categories:  hashTags,
+		Categories:  categories,
 	}
 	_, err := service.CreateClub(body)
 	assert.NoError(t, err)
@@ -56,13 +70,19 @@ func TestClubService_ListClub_소트(t *testing.T) {
 	service := NewTestClubService()
 	defer service.DB.Close()
 
-	hashTags := []string{"개발", "스타트업", "디자인"}
+	categories := []string{"개발", "스타트업", "디자인"}
+	for _, ctg := range categories {
+		_, err := service.DB.Category.Create().
+			SetID(ctg).
+			Save(context.TODO())
+		assert.NoError(t, err)
+	}
 	defaultBody := data.ClubDto{
 		Name:        pointer.ToString("쿠뮤 개발 동아리"),
 		Summary:     pointer.ToString("이런 저런 서비스를 개발해나가는 동아리 입니다."),
 		Description: pointer.ToString("이런 저런 서비스를 개발해나가는 동아리 입니다.이런 저런 서비스를 개발해나가는 동아리 입니다.\n\n이런 저런 서비스를 개발해나가는 동아리 입니다."),
 		Email:       pointer.ToString("dev.umijs@gmail.com"),
-		Categories:  hashTags,
+		Categories:  categories,
 	}
 	for i := 0; i < 10; i++ {
 		body := defaultBody

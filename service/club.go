@@ -55,7 +55,7 @@ func (s *ClubService) CreateClub(body *data.ClubDto) (*data.ClubDto, error) {
 	if err != nil {
 		return nil, err
 	}
-
+	club.Edges.Categories = club.QueryCategories().AllX(context.TODO())
 	return data.MapClubToClubDto(club), err
 }
 func (s *ClubService) ListClubs() ([]*data.ClubDto, error) {
