@@ -28,12 +28,17 @@ type ClubAddOrModifyRequestDto struct {
 }
 
 func MapClubToClubDto(source *ent.Club) *ClubDto {
+	categories := make([]string, 0)
+	for _, c := range source.Edges.Categories {
+		categories = append(categories, c.ID)
+	}
+
 	output := &ClubDto{
 		ID:          source.ID,
 		Name:        &source.Name,
 		Summary:     &source.Summary,
 		Description: &source.Description,
-		Categories:  source.Categories,
+		Categories:  categories,
 		Images:      source.Images,
 		Homepage:    String2StringPtr(source.Homepage, true),
 		Instagram:   String2StringPtr(source.Instagram, true),

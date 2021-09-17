@@ -10,6 +10,7 @@ import (
 	"entgo.io/ent/dialect"
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
+	"github.com/khu-dev/khumu-club/ent/category"
 	"github.com/khu-dev/khumu-club/ent/club"
 	"github.com/khu-dev/khumu-club/ent/likeclub"
 )
@@ -32,6 +33,7 @@ type OrderFunc func(*sql.Selector)
 // columnChecker returns a function indicates if the column exists in the given column.
 func columnChecker(table string) func(string) error {
 	checks := map[string]func(string) bool{
+		category.Table: category.ValidColumn,
 		club.Table:     club.ValidColumn,
 		likeclub.Table: likeclub.ValidColumn,
 	}

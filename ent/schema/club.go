@@ -17,7 +17,6 @@ func (Club) Fields() []ent.Field {
 		field.String("name"),
 		field.String("summary"),
 		field.String("description").MaxLen(1000),
-		field.Strings("categories"),
 		field.Strings("images").Optional(),
 		field.String("homepage").Optional(),
 		field.String("instagram").Optional(),
@@ -32,5 +31,7 @@ func (Club) Fields() []ent.Field {
 func (Club) Edges() []ent.Edge {
 	return []ent.Edge{
 		edge.To("likes", LikeClub.Type),
+		edge.From("categories", Category.Type).
+			Ref("clubs"),
 	}
 }

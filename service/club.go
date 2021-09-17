@@ -2,13 +2,13 @@ package service
 
 import (
 	"context"
-	"entgo.io/ent/dialect/sql"
-	"entgo.io/ent/dialect/sql/sqljson"
 	"errors"
 	"github.com/gofiber/fiber/v2"
 	"github.com/khu-dev/khumu-club/adapter/slack"
 	"github.com/khu-dev/khumu-club/data"
 	"github.com/khu-dev/khumu-club/ent"
+	"github.com/khu-dev/khumu-club/ent/category"
+	"github.com/khu-dev/khumu-club/ent/club"
 	"github.com/khu-dev/khumu-club/util"
 	log "github.com/sirupsen/logrus"
 	"math/rand"
@@ -42,7 +42,7 @@ func (s *ClubService) CreateClub(body *data.ClubDto) (*data.ClubDto, error) {
 		SetName(*body.Name).
 		SetSummary(*body.Summary).
 		SetDescription(*body.Description).
-		SetCategories(body.Categories).
+		AddCategoryIDs(body.Categories...).
 		SetImages(body.Images).
 		SetNillableHomepage(body.Homepage).
 		SetNillableInstagram(body.Instagram).
@@ -69,12 +69,12 @@ func (s *ClubService) ListClubs() ([]*data.ClubDto, error) {
 	return outputs, nil
 }
 
-func (s *ClubService) ListClubsByCategoryContaining(category string) ([]*data.ClubDto, error) {
+func (s *ClubService) ListClubsByCategoryContaining(ctg string) ([]*data.ClubDto, error) {
 	log.Info("카테고리가 포함된 동아리 검색")
-	results, err := s.DB.Club.Query().Where(func(selector *sql.Selector) {
-		selector.Where(sqljson.ValueContains("categories", category))
-
-	}).All(context.TODO())
+	results, err := s.DB.Club.Query().Where(club.HasCategoriesWith(
+		category.ID(ctg)),
+	).
+		All(context.TODO())
 	if err != nil {
 		log.Error(err)
 		return nil, err
@@ -136,16 +136,16 @@ func (s *ClubService) ClubModifyRequest(ctx *fiber.Ctx, body *data.ClubAddOrModi
 
 func (s *ClubService) ListCategories(ctx *fiber.Ctx) []string {
 	// 그냥 코드 자체로 간단히 관리함.
-	categories := []string{
-		"연행",
-		"종교",
-		"체육",
-		"전시창작",
-		"취미교양",
-		"체육",
-		"학술",
-		"종교",
-		"사회",
+	ctgs, err := s.DB.Category.Query().All(context.TODO())
+	if err != nil {
+		log.Error(err)
+		return []string{}
 	}
-	return categories
+
+	ctgStrings := make([]string, 0)
+	for _, ctg := range ctgs {
+		ctgStrings = append(ctgStrings, ctg.ID)
+	}
+
+	return ctgStrings
 }

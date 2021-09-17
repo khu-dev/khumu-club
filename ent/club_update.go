@@ -9,6 +9,7 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"github.com/khu-dev/khumu-club/ent/category"
 	"github.com/khu-dev/khumu-club/ent/club"
 	"github.com/khu-dev/khumu-club/ent/likeclub"
 	"github.com/khu-dev/khumu-club/ent/predicate"
@@ -42,12 +43,6 @@ func (cu *ClubUpdate) SetSummary(s string) *ClubUpdate {
 // SetDescription sets the "description" field.
 func (cu *ClubUpdate) SetDescription(s string) *ClubUpdate {
 	cu.mutation.SetDescription(s)
-	return cu
-}
-
-// SetCategories sets the "categories" field.
-func (cu *ClubUpdate) SetCategories(s []string) *ClubUpdate {
-	cu.mutation.SetCategories(s)
 	return cu
 }
 
@@ -192,6 +187,21 @@ func (cu *ClubUpdate) AddLikes(l ...*LikeClub) *ClubUpdate {
 	return cu.AddLikeIDs(ids...)
 }
 
+// AddCategoryIDs adds the "categories" edge to the Category entity by IDs.
+func (cu *ClubUpdate) AddCategoryIDs(ids ...string) *ClubUpdate {
+	cu.mutation.AddCategoryIDs(ids...)
+	return cu
+}
+
+// AddCategories adds the "categories" edges to the Category entity.
+func (cu *ClubUpdate) AddCategories(c ...*Category) *ClubUpdate {
+	ids := make([]string, len(c))
+	for i := range c {
+		ids[i] = c[i].ID
+	}
+	return cu.AddCategoryIDs(ids...)
+}
+
 // Mutation returns the ClubMutation object of the builder.
 func (cu *ClubUpdate) Mutation() *ClubMutation {
 	return cu.mutation
@@ -216,6 +226,27 @@ func (cu *ClubUpdate) RemoveLikes(l ...*LikeClub) *ClubUpdate {
 		ids[i] = l[i].ID
 	}
 	return cu.RemoveLikeIDs(ids...)
+}
+
+// ClearCategories clears all "categories" edges to the Category entity.
+func (cu *ClubUpdate) ClearCategories() *ClubUpdate {
+	cu.mutation.ClearCategories()
+	return cu
+}
+
+// RemoveCategoryIDs removes the "categories" edge to Category entities by IDs.
+func (cu *ClubUpdate) RemoveCategoryIDs(ids ...string) *ClubUpdate {
+	cu.mutation.RemoveCategoryIDs(ids...)
+	return cu
+}
+
+// RemoveCategories removes "categories" edges to Category entities.
+func (cu *ClubUpdate) RemoveCategories(c ...*Category) *ClubUpdate {
+	ids := make([]string, len(c))
+	for i := range c {
+		ids[i] = c[i].ID
+	}
+	return cu.RemoveCategoryIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -322,13 +353,6 @@ func (cu *ClubUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Type:   field.TypeString,
 			Value:  value,
 			Column: club.FieldDescription,
-		})
-	}
-	if value, ok := cu.mutation.Categories(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeJSON,
-			Value:  value,
-			Column: club.FieldCategories,
 		})
 	}
 	if value, ok := cu.mutation.Images(); ok {
@@ -470,6 +494,60 @@ func (cu *ClubUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if cu.mutation.CategoriesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   club.CategoriesTable,
+			Columns: club.CategoriesPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: category.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := cu.mutation.RemovedCategoriesIDs(); len(nodes) > 0 && !cu.mutation.CategoriesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   club.CategoriesTable,
+			Columns: club.CategoriesPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: category.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := cu.mutation.CategoriesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   club.CategoriesTable,
+			Columns: club.CategoriesPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: category.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if n, err = sqlgraph.UpdateNodes(ctx, cu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{club.Label}
@@ -504,12 +582,6 @@ func (cuo *ClubUpdateOne) SetSummary(s string) *ClubUpdateOne {
 // SetDescription sets the "description" field.
 func (cuo *ClubUpdateOne) SetDescription(s string) *ClubUpdateOne {
 	cuo.mutation.SetDescription(s)
-	return cuo
-}
-
-// SetCategories sets the "categories" field.
-func (cuo *ClubUpdateOne) SetCategories(s []string) *ClubUpdateOne {
-	cuo.mutation.SetCategories(s)
 	return cuo
 }
 
@@ -654,6 +726,21 @@ func (cuo *ClubUpdateOne) AddLikes(l ...*LikeClub) *ClubUpdateOne {
 	return cuo.AddLikeIDs(ids...)
 }
 
+// AddCategoryIDs adds the "categories" edge to the Category entity by IDs.
+func (cuo *ClubUpdateOne) AddCategoryIDs(ids ...string) *ClubUpdateOne {
+	cuo.mutation.AddCategoryIDs(ids...)
+	return cuo
+}
+
+// AddCategories adds the "categories" edges to the Category entity.
+func (cuo *ClubUpdateOne) AddCategories(c ...*Category) *ClubUpdateOne {
+	ids := make([]string, len(c))
+	for i := range c {
+		ids[i] = c[i].ID
+	}
+	return cuo.AddCategoryIDs(ids...)
+}
+
 // Mutation returns the ClubMutation object of the builder.
 func (cuo *ClubUpdateOne) Mutation() *ClubMutation {
 	return cuo.mutation
@@ -678,6 +765,27 @@ func (cuo *ClubUpdateOne) RemoveLikes(l ...*LikeClub) *ClubUpdateOne {
 		ids[i] = l[i].ID
 	}
 	return cuo.RemoveLikeIDs(ids...)
+}
+
+// ClearCategories clears all "categories" edges to the Category entity.
+func (cuo *ClubUpdateOne) ClearCategories() *ClubUpdateOne {
+	cuo.mutation.ClearCategories()
+	return cuo
+}
+
+// RemoveCategoryIDs removes the "categories" edge to Category entities by IDs.
+func (cuo *ClubUpdateOne) RemoveCategoryIDs(ids ...string) *ClubUpdateOne {
+	cuo.mutation.RemoveCategoryIDs(ids...)
+	return cuo
+}
+
+// RemoveCategories removes "categories" edges to Category entities.
+func (cuo *ClubUpdateOne) RemoveCategories(c ...*Category) *ClubUpdateOne {
+	ids := make([]string, len(c))
+	for i := range c {
+		ids[i] = c[i].ID
+	}
+	return cuo.RemoveCategoryIDs(ids...)
 }
 
 // Select allows selecting one or more fields (columns) of the returned entity.
@@ -808,13 +916,6 @@ func (cuo *ClubUpdateOne) sqlSave(ctx context.Context) (_node *Club, err error) 
 			Type:   field.TypeString,
 			Value:  value,
 			Column: club.FieldDescription,
-		})
-	}
-	if value, ok := cuo.mutation.Categories(); ok {
-		_spec.Fields.Set = append(_spec.Fields.Set, &sqlgraph.FieldSpec{
-			Type:   field.TypeJSON,
-			Value:  value,
-			Column: club.FieldCategories,
 		})
 	}
 	if value, ok := cuo.mutation.Images(); ok {
@@ -948,6 +1049,60 @@ func (cuo *ClubUpdateOne) sqlSave(ctx context.Context) (_node *Club, err error) 
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeInt,
 					Column: likeclub.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if cuo.mutation.CategoriesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   club.CategoriesTable,
+			Columns: club.CategoriesPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: category.FieldID,
+				},
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := cuo.mutation.RemovedCategoriesIDs(); len(nodes) > 0 && !cuo.mutation.CategoriesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   club.CategoriesTable,
+			Columns: club.CategoriesPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: category.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := cuo.mutation.CategoriesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   club.CategoriesTable,
+			Columns: club.CategoriesPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: category.FieldID,
 				},
 			},
 		}

@@ -14,61 +14,59 @@ import (
 	"entgo.io/ent/schema/field"
 	"github.com/khu-dev/khumu-club/ent/category"
 	"github.com/khu-dev/khumu-club/ent/club"
-	"github.com/khu-dev/khumu-club/ent/likeclub"
 	"github.com/khu-dev/khumu-club/ent/predicate"
 )
 
-// ClubQuery is the builder for querying Club entities.
-type ClubQuery struct {
+// CategoryQuery is the builder for querying Category entities.
+type CategoryQuery struct {
 	config
 	limit      *int
 	offset     *int
 	unique     *bool
 	order      []OrderFunc
 	fields     []string
-	predicates []predicate.Club
+	predicates []predicate.Category
 	// eager-loading edges.
-	withLikes      *LikeClubQuery
-	withCategories *CategoryQuery
+	withClubs *ClubQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
 }
 
-// Where adds a new predicate for the ClubQuery builder.
-func (cq *ClubQuery) Where(ps ...predicate.Club) *ClubQuery {
+// Where adds a new predicate for the CategoryQuery builder.
+func (cq *CategoryQuery) Where(ps ...predicate.Category) *CategoryQuery {
 	cq.predicates = append(cq.predicates, ps...)
 	return cq
 }
 
 // Limit adds a limit step to the query.
-func (cq *ClubQuery) Limit(limit int) *ClubQuery {
+func (cq *CategoryQuery) Limit(limit int) *CategoryQuery {
 	cq.limit = &limit
 	return cq
 }
 
 // Offset adds an offset step to the query.
-func (cq *ClubQuery) Offset(offset int) *ClubQuery {
+func (cq *CategoryQuery) Offset(offset int) *CategoryQuery {
 	cq.offset = &offset
 	return cq
 }
 
 // Unique configures the query builder to filter duplicate records on query.
 // By default, unique is set to true, and can be disabled using this method.
-func (cq *ClubQuery) Unique(unique bool) *ClubQuery {
+func (cq *CategoryQuery) Unique(unique bool) *CategoryQuery {
 	cq.unique = &unique
 	return cq
 }
 
 // Order adds an order step to the query.
-func (cq *ClubQuery) Order(o ...OrderFunc) *ClubQuery {
+func (cq *CategoryQuery) Order(o ...OrderFunc) *CategoryQuery {
 	cq.order = append(cq.order, o...)
 	return cq
 }
 
-// QueryLikes chains the current query on the "likes" edge.
-func (cq *ClubQuery) QueryLikes() *LikeClubQuery {
-	query := &LikeClubQuery{config: cq.config}
+// QueryClubs chains the current query on the "clubs" edge.
+func (cq *CategoryQuery) QueryClubs() *ClubQuery {
+	query := &ClubQuery{config: cq.config}
 	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
 		if err := cq.prepareQuery(ctx); err != nil {
 			return nil, err
@@ -78,9 +76,9 @@ func (cq *ClubQuery) QueryLikes() *LikeClubQuery {
 			return nil, err
 		}
 		step := sqlgraph.NewStep(
-			sqlgraph.From(club.Table, club.FieldID, selector),
-			sqlgraph.To(likeclub.Table, likeclub.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, club.LikesTable, club.LikesColumn),
+			sqlgraph.From(category.Table, category.FieldID, selector),
+			sqlgraph.To(club.Table, club.FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, false, category.ClubsTable, category.ClubsPrimaryKey...),
 		)
 		fromU = sqlgraph.SetNeighbors(cq.driver.Dialect(), step)
 		return fromU, nil
@@ -88,43 +86,21 @@ func (cq *ClubQuery) QueryLikes() *LikeClubQuery {
 	return query
 }
 
-// QueryCategories chains the current query on the "categories" edge.
-func (cq *ClubQuery) QueryCategories() *CategoryQuery {
-	query := &CategoryQuery{config: cq.config}
-	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
-		if err := cq.prepareQuery(ctx); err != nil {
-			return nil, err
-		}
-		selector := cq.sqlQuery(ctx)
-		if err := selector.Err(); err != nil {
-			return nil, err
-		}
-		step := sqlgraph.NewStep(
-			sqlgraph.From(club.Table, club.FieldID, selector),
-			sqlgraph.To(category.Table, category.FieldID),
-			sqlgraph.Edge(sqlgraph.M2M, true, club.CategoriesTable, club.CategoriesPrimaryKey...),
-		)
-		fromU = sqlgraph.SetNeighbors(cq.driver.Dialect(), step)
-		return fromU, nil
-	}
-	return query
-}
-
-// First returns the first Club entity from the query.
-// Returns a *NotFoundError when no Club was found.
-func (cq *ClubQuery) First(ctx context.Context) (*Club, error) {
+// First returns the first Category entity from the query.
+// Returns a *NotFoundError when no Category was found.
+func (cq *CategoryQuery) First(ctx context.Context) (*Category, error) {
 	nodes, err := cq.Limit(1).All(ctx)
 	if err != nil {
 		return nil, err
 	}
 	if len(nodes) == 0 {
-		return nil, &NotFoundError{club.Label}
+		return nil, &NotFoundError{category.Label}
 	}
 	return nodes[0], nil
 }
 
 // FirstX is like First, but panics if an error occurs.
-func (cq *ClubQuery) FirstX(ctx context.Context) *Club {
+func (cq *CategoryQuery) FirstX(ctx context.Context) *Category {
 	node, err := cq.First(ctx)
 	if err != nil && !IsNotFound(err) {
 		panic(err)
@@ -132,22 +108,22 @@ func (cq *ClubQuery) FirstX(ctx context.Context) *Club {
 	return node
 }
 
-// FirstID returns the first Club ID from the query.
-// Returns a *NotFoundError when no Club ID was found.
-func (cq *ClubQuery) FirstID(ctx context.Context) (id int, err error) {
-	var ids []int
+// FirstID returns the first Category ID from the query.
+// Returns a *NotFoundError when no Category ID was found.
+func (cq *CategoryQuery) FirstID(ctx context.Context) (id string, err error) {
+	var ids []string
 	if ids, err = cq.Limit(1).IDs(ctx); err != nil {
 		return
 	}
 	if len(ids) == 0 {
-		err = &NotFoundError{club.Label}
+		err = &NotFoundError{category.Label}
 		return
 	}
 	return ids[0], nil
 }
 
 // FirstIDX is like FirstID, but panics if an error occurs.
-func (cq *ClubQuery) FirstIDX(ctx context.Context) int {
+func (cq *CategoryQuery) FirstIDX(ctx context.Context) string {
 	id, err := cq.FirstID(ctx)
 	if err != nil && !IsNotFound(err) {
 		panic(err)
@@ -155,10 +131,10 @@ func (cq *ClubQuery) FirstIDX(ctx context.Context) int {
 	return id
 }
 
-// Only returns a single Club entity found by the query, ensuring it only returns one.
-// Returns a *NotSingularError when exactly one Club entity is not found.
-// Returns a *NotFoundError when no Club entities are found.
-func (cq *ClubQuery) Only(ctx context.Context) (*Club, error) {
+// Only returns a single Category entity found by the query, ensuring it only returns one.
+// Returns a *NotSingularError when exactly one Category entity is not found.
+// Returns a *NotFoundError when no Category entities are found.
+func (cq *CategoryQuery) Only(ctx context.Context) (*Category, error) {
 	nodes, err := cq.Limit(2).All(ctx)
 	if err != nil {
 		return nil, err
@@ -167,14 +143,14 @@ func (cq *ClubQuery) Only(ctx context.Context) (*Club, error) {
 	case 1:
 		return nodes[0], nil
 	case 0:
-		return nil, &NotFoundError{club.Label}
+		return nil, &NotFoundError{category.Label}
 	default:
-		return nil, &NotSingularError{club.Label}
+		return nil, &NotSingularError{category.Label}
 	}
 }
 
 // OnlyX is like Only, but panics if an error occurs.
-func (cq *ClubQuery) OnlyX(ctx context.Context) *Club {
+func (cq *CategoryQuery) OnlyX(ctx context.Context) *Category {
 	node, err := cq.Only(ctx)
 	if err != nil {
 		panic(err)
@@ -182,11 +158,11 @@ func (cq *ClubQuery) OnlyX(ctx context.Context) *Club {
 	return node
 }
 
-// OnlyID is like Only, but returns the only Club ID in the query.
-// Returns a *NotSingularError when exactly one Club ID is not found.
+// OnlyID is like Only, but returns the only Category ID in the query.
+// Returns a *NotSingularError when exactly one Category ID is not found.
 // Returns a *NotFoundError when no entities are found.
-func (cq *ClubQuery) OnlyID(ctx context.Context) (id int, err error) {
-	var ids []int
+func (cq *CategoryQuery) OnlyID(ctx context.Context) (id string, err error) {
+	var ids []string
 	if ids, err = cq.Limit(2).IDs(ctx); err != nil {
 		return
 	}
@@ -194,15 +170,15 @@ func (cq *ClubQuery) OnlyID(ctx context.Context) (id int, err error) {
 	case 1:
 		id = ids[0]
 	case 0:
-		err = &NotFoundError{club.Label}
+		err = &NotFoundError{category.Label}
 	default:
-		err = &NotSingularError{club.Label}
+		err = &NotSingularError{category.Label}
 	}
 	return
 }
 
 // OnlyIDX is like OnlyID, but panics if an error occurs.
-func (cq *ClubQuery) OnlyIDX(ctx context.Context) int {
+func (cq *CategoryQuery) OnlyIDX(ctx context.Context) string {
 	id, err := cq.OnlyID(ctx)
 	if err != nil {
 		panic(err)
@@ -210,8 +186,8 @@ func (cq *ClubQuery) OnlyIDX(ctx context.Context) int {
 	return id
 }
 
-// All executes the query and returns a list of Clubs.
-func (cq *ClubQuery) All(ctx context.Context) ([]*Club, error) {
+// All executes the query and returns a list of Categories.
+func (cq *CategoryQuery) All(ctx context.Context) ([]*Category, error) {
 	if err := cq.prepareQuery(ctx); err != nil {
 		return nil, err
 	}
@@ -219,7 +195,7 @@ func (cq *ClubQuery) All(ctx context.Context) ([]*Club, error) {
 }
 
 // AllX is like All, but panics if an error occurs.
-func (cq *ClubQuery) AllX(ctx context.Context) []*Club {
+func (cq *CategoryQuery) AllX(ctx context.Context) []*Category {
 	nodes, err := cq.All(ctx)
 	if err != nil {
 		panic(err)
@@ -227,17 +203,17 @@ func (cq *ClubQuery) AllX(ctx context.Context) []*Club {
 	return nodes
 }
 
-// IDs executes the query and returns a list of Club IDs.
-func (cq *ClubQuery) IDs(ctx context.Context) ([]int, error) {
-	var ids []int
-	if err := cq.Select(club.FieldID).Scan(ctx, &ids); err != nil {
+// IDs executes the query and returns a list of Category IDs.
+func (cq *CategoryQuery) IDs(ctx context.Context) ([]string, error) {
+	var ids []string
+	if err := cq.Select(category.FieldID).Scan(ctx, &ids); err != nil {
 		return nil, err
 	}
 	return ids, nil
 }
 
 // IDsX is like IDs, but panics if an error occurs.
-func (cq *ClubQuery) IDsX(ctx context.Context) []int {
+func (cq *CategoryQuery) IDsX(ctx context.Context) []string {
 	ids, err := cq.IDs(ctx)
 	if err != nil {
 		panic(err)
@@ -246,7 +222,7 @@ func (cq *ClubQuery) IDsX(ctx context.Context) []int {
 }
 
 // Count returns the count of the given query.
-func (cq *ClubQuery) Count(ctx context.Context) (int, error) {
+func (cq *CategoryQuery) Count(ctx context.Context) (int, error) {
 	if err := cq.prepareQuery(ctx); err != nil {
 		return 0, err
 	}
@@ -254,7 +230,7 @@ func (cq *ClubQuery) Count(ctx context.Context) (int, error) {
 }
 
 // CountX is like Count, but panics if an error occurs.
-func (cq *ClubQuery) CountX(ctx context.Context) int {
+func (cq *CategoryQuery) CountX(ctx context.Context) int {
 	count, err := cq.Count(ctx)
 	if err != nil {
 		panic(err)
@@ -263,7 +239,7 @@ func (cq *ClubQuery) CountX(ctx context.Context) int {
 }
 
 // Exist returns true if the query has elements in the graph.
-func (cq *ClubQuery) Exist(ctx context.Context) (bool, error) {
+func (cq *CategoryQuery) Exist(ctx context.Context) (bool, error) {
 	if err := cq.prepareQuery(ctx); err != nil {
 		return false, err
 	}
@@ -271,7 +247,7 @@ func (cq *ClubQuery) Exist(ctx context.Context) (bool, error) {
 }
 
 // ExistX is like Exist, but panics if an error occurs.
-func (cq *ClubQuery) ExistX(ctx context.Context) bool {
+func (cq *CategoryQuery) ExistX(ctx context.Context) bool {
 	exist, err := cq.Exist(ctx)
 	if err != nil {
 		panic(err)
@@ -279,65 +255,40 @@ func (cq *ClubQuery) ExistX(ctx context.Context) bool {
 	return exist
 }
 
-// Clone returns a duplicate of the ClubQuery builder, including all associated steps. It can be
+// Clone returns a duplicate of the CategoryQuery builder, including all associated steps. It can be
 // used to prepare common query builders and use them differently after the clone is made.
-func (cq *ClubQuery) Clone() *ClubQuery {
+func (cq *CategoryQuery) Clone() *CategoryQuery {
 	if cq == nil {
 		return nil
 	}
-	return &ClubQuery{
-		config:         cq.config,
-		limit:          cq.limit,
-		offset:         cq.offset,
-		order:          append([]OrderFunc{}, cq.order...),
-		predicates:     append([]predicate.Club{}, cq.predicates...),
-		withLikes:      cq.withLikes.Clone(),
-		withCategories: cq.withCategories.Clone(),
+	return &CategoryQuery{
+		config:     cq.config,
+		limit:      cq.limit,
+		offset:     cq.offset,
+		order:      append([]OrderFunc{}, cq.order...),
+		predicates: append([]predicate.Category{}, cq.predicates...),
+		withClubs:  cq.withClubs.Clone(),
 		// clone intermediate query.
 		sql:  cq.sql.Clone(),
 		path: cq.path,
 	}
 }
 
-// WithLikes tells the query-builder to eager-load the nodes that are connected to
-// the "likes" edge. The optional arguments are used to configure the query builder of the edge.
-func (cq *ClubQuery) WithLikes(opts ...func(*LikeClubQuery)) *ClubQuery {
-	query := &LikeClubQuery{config: cq.config}
+// WithClubs tells the query-builder to eager-load the nodes that are connected to
+// the "clubs" edge. The optional arguments are used to configure the query builder of the edge.
+func (cq *CategoryQuery) WithClubs(opts ...func(*ClubQuery)) *CategoryQuery {
+	query := &ClubQuery{config: cq.config}
 	for _, opt := range opts {
 		opt(query)
 	}
-	cq.withLikes = query
-	return cq
-}
-
-// WithCategories tells the query-builder to eager-load the nodes that are connected to
-// the "categories" edge. The optional arguments are used to configure the query builder of the edge.
-func (cq *ClubQuery) WithCategories(opts ...func(*CategoryQuery)) *ClubQuery {
-	query := &CategoryQuery{config: cq.config}
-	for _, opt := range opts {
-		opt(query)
-	}
-	cq.withCategories = query
+	cq.withClubs = query
 	return cq
 }
 
 // GroupBy is used to group vertices by one or more fields/columns.
 // It is often used with aggregate functions, like: count, max, mean, min, sum.
-//
-// Example:
-//
-//	var v []struct {
-//		Name string `json:"name,omitempty"`
-//		Count int `json:"count,omitempty"`
-//	}
-//
-//	client.Club.Query().
-//		GroupBy(club.FieldName).
-//		Aggregate(ent.Count()).
-//		Scan(ctx, &v)
-//
-func (cq *ClubQuery) GroupBy(field string, fields ...string) *ClubGroupBy {
-	group := &ClubGroupBy{config: cq.config}
+func (cq *CategoryQuery) GroupBy(field string, fields ...string) *CategoryGroupBy {
+	group := &CategoryGroupBy{config: cq.config}
 	group.fields = append([]string{field}, fields...)
 	group.path = func(ctx context.Context) (prev *sql.Selector, err error) {
 		if err := cq.prepareQuery(ctx); err != nil {
@@ -350,25 +301,14 @@ func (cq *ClubQuery) GroupBy(field string, fields ...string) *ClubGroupBy {
 
 // Select allows the selection one or more fields/columns for the given query,
 // instead of selecting all fields in the entity.
-//
-// Example:
-//
-//	var v []struct {
-//		Name string `json:"name,omitempty"`
-//	}
-//
-//	client.Club.Query().
-//		Select(club.FieldName).
-//		Scan(ctx, &v)
-//
-func (cq *ClubQuery) Select(field string, fields ...string) *ClubSelect {
+func (cq *CategoryQuery) Select(field string, fields ...string) *CategorySelect {
 	cq.fields = append([]string{field}, fields...)
-	return &ClubSelect{ClubQuery: cq}
+	return &CategorySelect{CategoryQuery: cq}
 }
 
-func (cq *ClubQuery) prepareQuery(ctx context.Context) error {
+func (cq *CategoryQuery) prepareQuery(ctx context.Context) error {
 	for _, f := range cq.fields {
-		if !club.ValidColumn(f) {
+		if !category.ValidColumn(f) {
 			return &ValidationError{Name: f, err: fmt.Errorf("ent: invalid field %q for query", f)}
 		}
 	}
@@ -382,17 +322,16 @@ func (cq *ClubQuery) prepareQuery(ctx context.Context) error {
 	return nil
 }
 
-func (cq *ClubQuery) sqlAll(ctx context.Context) ([]*Club, error) {
+func (cq *CategoryQuery) sqlAll(ctx context.Context) ([]*Category, error) {
 	var (
-		nodes       = []*Club{}
+		nodes       = []*Category{}
 		_spec       = cq.querySpec()
-		loadedTypes = [2]bool{
-			cq.withLikes != nil,
-			cq.withCategories != nil,
+		loadedTypes = [1]bool{
+			cq.withClubs != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]interface{}, error) {
-		node := &Club{config: cq.config}
+		node := &Category{config: cq.config}
 		nodes = append(nodes, node)
 		return node.scanValues(columns)
 	}
@@ -411,70 +350,41 @@ func (cq *ClubQuery) sqlAll(ctx context.Context) ([]*Club, error) {
 		return nodes, nil
 	}
 
-	if query := cq.withLikes; query != nil {
+	if query := cq.withClubs; query != nil {
 		fks := make([]driver.Value, 0, len(nodes))
-		nodeids := make(map[int]*Club)
-		for i := range nodes {
-			fks = append(fks, nodes[i].ID)
-			nodeids[nodes[i].ID] = nodes[i]
-			nodes[i].Edges.Likes = []*LikeClub{}
-		}
-		query.withFKs = true
-		query.Where(predicate.LikeClub(func(s *sql.Selector) {
-			s.Where(sql.InValues(club.LikesColumn, fks...))
-		}))
-		neighbors, err := query.All(ctx)
-		if err != nil {
-			return nil, err
-		}
-		for _, n := range neighbors {
-			fk := n.club_likes
-			if fk == nil {
-				return nil, fmt.Errorf(`foreign-key "club_likes" is nil for node %v`, n.ID)
-			}
-			node, ok := nodeids[*fk]
-			if !ok {
-				return nil, fmt.Errorf(`unexpected foreign-key "club_likes" returned %v for node %v`, *fk, n.ID)
-			}
-			node.Edges.Likes = append(node.Edges.Likes, n)
-		}
-	}
-
-	if query := cq.withCategories; query != nil {
-		fks := make([]driver.Value, 0, len(nodes))
-		ids := make(map[int]*Club, len(nodes))
+		ids := make(map[string]*Category, len(nodes))
 		for _, node := range nodes {
 			ids[node.ID] = node
 			fks = append(fks, node.ID)
-			node.Edges.Categories = []*Category{}
+			node.Edges.Clubs = []*Club{}
 		}
 		var (
-			edgeids []string
-			edges   = make(map[string][]*Club)
+			edgeids []int
+			edges   = make(map[int][]*Category)
 		)
 		_spec := &sqlgraph.EdgeQuerySpec{
 			Edge: &sqlgraph.EdgeSpec{
-				Inverse: true,
-				Table:   club.CategoriesTable,
-				Columns: club.CategoriesPrimaryKey,
+				Inverse: false,
+				Table:   category.ClubsTable,
+				Columns: category.ClubsPrimaryKey,
 			},
 			Predicate: func(s *sql.Selector) {
-				s.Where(sql.InValues(club.CategoriesPrimaryKey[1], fks...))
+				s.Where(sql.InValues(category.ClubsPrimaryKey[0], fks...))
 			},
 			ScanValues: func() [2]interface{} {
-				return [2]interface{}{&sql.NullInt64{}, &sql.NullString{}}
+				return [2]interface{}{&sql.NullString{}, &sql.NullInt64{}}
 			},
 			Assign: func(out, in interface{}) error {
-				eout, ok := out.(*sql.NullInt64)
+				eout, ok := out.(*sql.NullString)
 				if !ok || eout == nil {
 					return fmt.Errorf("unexpected id value for edge-out")
 				}
-				ein, ok := in.(*sql.NullString)
+				ein, ok := in.(*sql.NullInt64)
 				if !ok || ein == nil {
 					return fmt.Errorf("unexpected id value for edge-in")
 				}
-				outValue := int(eout.Int64)
-				inValue := ein.String
+				outValue := eout.String
+				inValue := int(ein.Int64)
 				node, ok := ids[outValue]
 				if !ok {
 					return fmt.Errorf("unexpected node id in edges: %v", outValue)
@@ -487,9 +397,9 @@ func (cq *ClubQuery) sqlAll(ctx context.Context) ([]*Club, error) {
 			},
 		}
 		if err := sqlgraph.QueryEdges(ctx, cq.driver, _spec); err != nil {
-			return nil, fmt.Errorf(`query edges "categories": %w`, err)
+			return nil, fmt.Errorf(`query edges "clubs": %w`, err)
 		}
-		query.Where(category.IDIn(edgeids...))
+		query.Where(club.IDIn(edgeids...))
 		neighbors, err := query.All(ctx)
 		if err != nil {
 			return nil, err
@@ -497,10 +407,10 @@ func (cq *ClubQuery) sqlAll(ctx context.Context) ([]*Club, error) {
 		for _, n := range neighbors {
 			nodes, ok := edges[n.ID]
 			if !ok {
-				return nil, fmt.Errorf(`unexpected "categories" node returned %v`, n.ID)
+				return nil, fmt.Errorf(`unexpected "clubs" node returned %v`, n.ID)
 			}
 			for i := range nodes {
-				nodes[i].Edges.Categories = append(nodes[i].Edges.Categories, n)
+				nodes[i].Edges.Clubs = append(nodes[i].Edges.Clubs, n)
 			}
 		}
 	}
@@ -508,12 +418,12 @@ func (cq *ClubQuery) sqlAll(ctx context.Context) ([]*Club, error) {
 	return nodes, nil
 }
 
-func (cq *ClubQuery) sqlCount(ctx context.Context) (int, error) {
+func (cq *CategoryQuery) sqlCount(ctx context.Context) (int, error) {
 	_spec := cq.querySpec()
 	return sqlgraph.CountNodes(ctx, cq.driver, _spec)
 }
 
-func (cq *ClubQuery) sqlExist(ctx context.Context) (bool, error) {
+func (cq *CategoryQuery) sqlExist(ctx context.Context) (bool, error) {
 	n, err := cq.sqlCount(ctx)
 	if err != nil {
 		return false, fmt.Errorf("ent: check existence: %w", err)
@@ -521,14 +431,14 @@ func (cq *ClubQuery) sqlExist(ctx context.Context) (bool, error) {
 	return n > 0, nil
 }
 
-func (cq *ClubQuery) querySpec() *sqlgraph.QuerySpec {
+func (cq *CategoryQuery) querySpec() *sqlgraph.QuerySpec {
 	_spec := &sqlgraph.QuerySpec{
 		Node: &sqlgraph.NodeSpec{
-			Table:   club.Table,
-			Columns: club.Columns,
+			Table:   category.Table,
+			Columns: category.Columns,
 			ID: &sqlgraph.FieldSpec{
-				Type:   field.TypeInt,
-				Column: club.FieldID,
+				Type:   field.TypeString,
+				Column: category.FieldID,
 			},
 		},
 		From:   cq.sql,
@@ -539,9 +449,9 @@ func (cq *ClubQuery) querySpec() *sqlgraph.QuerySpec {
 	}
 	if fields := cq.fields; len(fields) > 0 {
 		_spec.Node.Columns = make([]string, 0, len(fields))
-		_spec.Node.Columns = append(_spec.Node.Columns, club.FieldID)
+		_spec.Node.Columns = append(_spec.Node.Columns, category.FieldID)
 		for i := range fields {
-			if fields[i] != club.FieldID {
+			if fields[i] != category.FieldID {
 				_spec.Node.Columns = append(_spec.Node.Columns, fields[i])
 			}
 		}
@@ -569,13 +479,13 @@ func (cq *ClubQuery) querySpec() *sqlgraph.QuerySpec {
 	return _spec
 }
 
-func (cq *ClubQuery) sqlQuery(ctx context.Context) *sql.Selector {
+func (cq *CategoryQuery) sqlQuery(ctx context.Context) *sql.Selector {
 	builder := sql.Dialect(cq.driver.Dialect())
-	t1 := builder.Table(club.Table)
-	selector := builder.Select(t1.Columns(club.Columns...)...).From(t1)
+	t1 := builder.Table(category.Table)
+	selector := builder.Select(t1.Columns(category.Columns...)...).From(t1)
 	if cq.sql != nil {
 		selector = cq.sql
-		selector.Select(selector.Columns(club.Columns...)...)
+		selector.Select(selector.Columns(category.Columns...)...)
 	}
 	for _, p := range cq.predicates {
 		p(selector)
@@ -594,8 +504,8 @@ func (cq *ClubQuery) sqlQuery(ctx context.Context) *sql.Selector {
 	return selector
 }
 
-// ClubGroupBy is the group-by builder for Club entities.
-type ClubGroupBy struct {
+// CategoryGroupBy is the group-by builder for Category entities.
+type CategoryGroupBy struct {
 	config
 	fields []string
 	fns    []AggregateFunc
@@ -605,13 +515,13 @@ type ClubGroupBy struct {
 }
 
 // Aggregate adds the given aggregation functions to the group-by query.
-func (cgb *ClubGroupBy) Aggregate(fns ...AggregateFunc) *ClubGroupBy {
+func (cgb *CategoryGroupBy) Aggregate(fns ...AggregateFunc) *CategoryGroupBy {
 	cgb.fns = append(cgb.fns, fns...)
 	return cgb
 }
 
 // Scan applies the group-by query and scans the result into the given value.
-func (cgb *ClubGroupBy) Scan(ctx context.Context, v interface{}) error {
+func (cgb *CategoryGroupBy) Scan(ctx context.Context, v interface{}) error {
 	query, err := cgb.path(ctx)
 	if err != nil {
 		return err
@@ -621,7 +531,7 @@ func (cgb *ClubGroupBy) Scan(ctx context.Context, v interface{}) error {
 }
 
 // ScanX is like Scan, but panics if an error occurs.
-func (cgb *ClubGroupBy) ScanX(ctx context.Context, v interface{}) {
+func (cgb *CategoryGroupBy) ScanX(ctx context.Context, v interface{}) {
 	if err := cgb.Scan(ctx, v); err != nil {
 		panic(err)
 	}
@@ -629,9 +539,9 @@ func (cgb *ClubGroupBy) ScanX(ctx context.Context, v interface{}) {
 
 // Strings returns list of strings from group-by.
 // It is only allowed when executing a group-by query with one field.
-func (cgb *ClubGroupBy) Strings(ctx context.Context) ([]string, error) {
+func (cgb *CategoryGroupBy) Strings(ctx context.Context) ([]string, error) {
 	if len(cgb.fields) > 1 {
-		return nil, errors.New("ent: ClubGroupBy.Strings is not achievable when grouping more than 1 field")
+		return nil, errors.New("ent: CategoryGroupBy.Strings is not achievable when grouping more than 1 field")
 	}
 	var v []string
 	if err := cgb.Scan(ctx, &v); err != nil {
@@ -641,7 +551,7 @@ func (cgb *ClubGroupBy) Strings(ctx context.Context) ([]string, error) {
 }
 
 // StringsX is like Strings, but panics if an error occurs.
-func (cgb *ClubGroupBy) StringsX(ctx context.Context) []string {
+func (cgb *CategoryGroupBy) StringsX(ctx context.Context) []string {
 	v, err := cgb.Strings(ctx)
 	if err != nil {
 		panic(err)
@@ -651,7 +561,7 @@ func (cgb *ClubGroupBy) StringsX(ctx context.Context) []string {
 
 // String returns a single string from a group-by query.
 // It is only allowed when executing a group-by query with one field.
-func (cgb *ClubGroupBy) String(ctx context.Context) (_ string, err error) {
+func (cgb *CategoryGroupBy) String(ctx context.Context) (_ string, err error) {
 	var v []string
 	if v, err = cgb.Strings(ctx); err != nil {
 		return
@@ -660,15 +570,15 @@ func (cgb *ClubGroupBy) String(ctx context.Context) (_ string, err error) {
 	case 1:
 		return v[0], nil
 	case 0:
-		err = &NotFoundError{club.Label}
+		err = &NotFoundError{category.Label}
 	default:
-		err = fmt.Errorf("ent: ClubGroupBy.Strings returned %d results when one was expected", len(v))
+		err = fmt.Errorf("ent: CategoryGroupBy.Strings returned %d results when one was expected", len(v))
 	}
 	return
 }
 
 // StringX is like String, but panics if an error occurs.
-func (cgb *ClubGroupBy) StringX(ctx context.Context) string {
+func (cgb *CategoryGroupBy) StringX(ctx context.Context) string {
 	v, err := cgb.String(ctx)
 	if err != nil {
 		panic(err)
@@ -678,9 +588,9 @@ func (cgb *ClubGroupBy) StringX(ctx context.Context) string {
 
 // Ints returns list of ints from group-by.
 // It is only allowed when executing a group-by query with one field.
-func (cgb *ClubGroupBy) Ints(ctx context.Context) ([]int, error) {
+func (cgb *CategoryGroupBy) Ints(ctx context.Context) ([]int, error) {
 	if len(cgb.fields) > 1 {
-		return nil, errors.New("ent: ClubGroupBy.Ints is not achievable when grouping more than 1 field")
+		return nil, errors.New("ent: CategoryGroupBy.Ints is not achievable when grouping more than 1 field")
 	}
 	var v []int
 	if err := cgb.Scan(ctx, &v); err != nil {
@@ -690,7 +600,7 @@ func (cgb *ClubGroupBy) Ints(ctx context.Context) ([]int, error) {
 }
 
 // IntsX is like Ints, but panics if an error occurs.
-func (cgb *ClubGroupBy) IntsX(ctx context.Context) []int {
+func (cgb *CategoryGroupBy) IntsX(ctx context.Context) []int {
 	v, err := cgb.Ints(ctx)
 	if err != nil {
 		panic(err)
@@ -700,7 +610,7 @@ func (cgb *ClubGroupBy) IntsX(ctx context.Context) []int {
 
 // Int returns a single int from a group-by query.
 // It is only allowed when executing a group-by query with one field.
-func (cgb *ClubGroupBy) Int(ctx context.Context) (_ int, err error) {
+func (cgb *CategoryGroupBy) Int(ctx context.Context) (_ int, err error) {
 	var v []int
 	if v, err = cgb.Ints(ctx); err != nil {
 		return
@@ -709,15 +619,15 @@ func (cgb *ClubGroupBy) Int(ctx context.Context) (_ int, err error) {
 	case 1:
 		return v[0], nil
 	case 0:
-		err = &NotFoundError{club.Label}
+		err = &NotFoundError{category.Label}
 	default:
-		err = fmt.Errorf("ent: ClubGroupBy.Ints returned %d results when one was expected", len(v))
+		err = fmt.Errorf("ent: CategoryGroupBy.Ints returned %d results when one was expected", len(v))
 	}
 	return
 }
 
 // IntX is like Int, but panics if an error occurs.
-func (cgb *ClubGroupBy) IntX(ctx context.Context) int {
+func (cgb *CategoryGroupBy) IntX(ctx context.Context) int {
 	v, err := cgb.Int(ctx)
 	if err != nil {
 		panic(err)
@@ -727,9 +637,9 @@ func (cgb *ClubGroupBy) IntX(ctx context.Context) int {
 
 // Float64s returns list of float64s from group-by.
 // It is only allowed when executing a group-by query with one field.
-func (cgb *ClubGroupBy) Float64s(ctx context.Context) ([]float64, error) {
+func (cgb *CategoryGroupBy) Float64s(ctx context.Context) ([]float64, error) {
 	if len(cgb.fields) > 1 {
-		return nil, errors.New("ent: ClubGroupBy.Float64s is not achievable when grouping more than 1 field")
+		return nil, errors.New("ent: CategoryGroupBy.Float64s is not achievable when grouping more than 1 field")
 	}
 	var v []float64
 	if err := cgb.Scan(ctx, &v); err != nil {
@@ -739,7 +649,7 @@ func (cgb *ClubGroupBy) Float64s(ctx context.Context) ([]float64, error) {
 }
 
 // Float64sX is like Float64s, but panics if an error occurs.
-func (cgb *ClubGroupBy) Float64sX(ctx context.Context) []float64 {
+func (cgb *CategoryGroupBy) Float64sX(ctx context.Context) []float64 {
 	v, err := cgb.Float64s(ctx)
 	if err != nil {
 		panic(err)
@@ -749,7 +659,7 @@ func (cgb *ClubGroupBy) Float64sX(ctx context.Context) []float64 {
 
 // Float64 returns a single float64 from a group-by query.
 // It is only allowed when executing a group-by query with one field.
-func (cgb *ClubGroupBy) Float64(ctx context.Context) (_ float64, err error) {
+func (cgb *CategoryGroupBy) Float64(ctx context.Context) (_ float64, err error) {
 	var v []float64
 	if v, err = cgb.Float64s(ctx); err != nil {
 		return
@@ -758,15 +668,15 @@ func (cgb *ClubGroupBy) Float64(ctx context.Context) (_ float64, err error) {
 	case 1:
 		return v[0], nil
 	case 0:
-		err = &NotFoundError{club.Label}
+		err = &NotFoundError{category.Label}
 	default:
-		err = fmt.Errorf("ent: ClubGroupBy.Float64s returned %d results when one was expected", len(v))
+		err = fmt.Errorf("ent: CategoryGroupBy.Float64s returned %d results when one was expected", len(v))
 	}
 	return
 }
 
 // Float64X is like Float64, but panics if an error occurs.
-func (cgb *ClubGroupBy) Float64X(ctx context.Context) float64 {
+func (cgb *CategoryGroupBy) Float64X(ctx context.Context) float64 {
 	v, err := cgb.Float64(ctx)
 	if err != nil {
 		panic(err)
@@ -776,9 +686,9 @@ func (cgb *ClubGroupBy) Float64X(ctx context.Context) float64 {
 
 // Bools returns list of bools from group-by.
 // It is only allowed when executing a group-by query with one field.
-func (cgb *ClubGroupBy) Bools(ctx context.Context) ([]bool, error) {
+func (cgb *CategoryGroupBy) Bools(ctx context.Context) ([]bool, error) {
 	if len(cgb.fields) > 1 {
-		return nil, errors.New("ent: ClubGroupBy.Bools is not achievable when grouping more than 1 field")
+		return nil, errors.New("ent: CategoryGroupBy.Bools is not achievable when grouping more than 1 field")
 	}
 	var v []bool
 	if err := cgb.Scan(ctx, &v); err != nil {
@@ -788,7 +698,7 @@ func (cgb *ClubGroupBy) Bools(ctx context.Context) ([]bool, error) {
 }
 
 // BoolsX is like Bools, but panics if an error occurs.
-func (cgb *ClubGroupBy) BoolsX(ctx context.Context) []bool {
+func (cgb *CategoryGroupBy) BoolsX(ctx context.Context) []bool {
 	v, err := cgb.Bools(ctx)
 	if err != nil {
 		panic(err)
@@ -798,7 +708,7 @@ func (cgb *ClubGroupBy) BoolsX(ctx context.Context) []bool {
 
 // Bool returns a single bool from a group-by query.
 // It is only allowed when executing a group-by query with one field.
-func (cgb *ClubGroupBy) Bool(ctx context.Context) (_ bool, err error) {
+func (cgb *CategoryGroupBy) Bool(ctx context.Context) (_ bool, err error) {
 	var v []bool
 	if v, err = cgb.Bools(ctx); err != nil {
 		return
@@ -807,15 +717,15 @@ func (cgb *ClubGroupBy) Bool(ctx context.Context) (_ bool, err error) {
 	case 1:
 		return v[0], nil
 	case 0:
-		err = &NotFoundError{club.Label}
+		err = &NotFoundError{category.Label}
 	default:
-		err = fmt.Errorf("ent: ClubGroupBy.Bools returned %d results when one was expected", len(v))
+		err = fmt.Errorf("ent: CategoryGroupBy.Bools returned %d results when one was expected", len(v))
 	}
 	return
 }
 
 // BoolX is like Bool, but panics if an error occurs.
-func (cgb *ClubGroupBy) BoolX(ctx context.Context) bool {
+func (cgb *CategoryGroupBy) BoolX(ctx context.Context) bool {
 	v, err := cgb.Bool(ctx)
 	if err != nil {
 		panic(err)
@@ -823,9 +733,9 @@ func (cgb *ClubGroupBy) BoolX(ctx context.Context) bool {
 	return v
 }
 
-func (cgb *ClubGroupBy) sqlScan(ctx context.Context, v interface{}) error {
+func (cgb *CategoryGroupBy) sqlScan(ctx context.Context, v interface{}) error {
 	for _, f := range cgb.fields {
-		if !club.ValidColumn(f) {
+		if !category.ValidColumn(f) {
 			return &ValidationError{Name: f, err: fmt.Errorf("invalid field %q for group-by", f)}
 		}
 	}
@@ -842,7 +752,7 @@ func (cgb *ClubGroupBy) sqlScan(ctx context.Context, v interface{}) error {
 	return sql.ScanSlice(rows, v)
 }
 
-func (cgb *ClubGroupBy) sqlQuery() *sql.Selector {
+func (cgb *CategoryGroupBy) sqlQuery() *sql.Selector {
 	selector := cgb.sql
 	columns := make([]string, 0, len(cgb.fields)+len(cgb.fns))
 	columns = append(columns, cgb.fields...)
@@ -852,33 +762,33 @@ func (cgb *ClubGroupBy) sqlQuery() *sql.Selector {
 	return selector.Select(columns...).GroupBy(cgb.fields...)
 }
 
-// ClubSelect is the builder for selecting fields of Club entities.
-type ClubSelect struct {
-	*ClubQuery
+// CategorySelect is the builder for selecting fields of Category entities.
+type CategorySelect struct {
+	*CategoryQuery
 	// intermediate query (i.e. traversal path).
 	sql *sql.Selector
 }
 
 // Scan applies the selector query and scans the result into the given value.
-func (cs *ClubSelect) Scan(ctx context.Context, v interface{}) error {
+func (cs *CategorySelect) Scan(ctx context.Context, v interface{}) error {
 	if err := cs.prepareQuery(ctx); err != nil {
 		return err
 	}
-	cs.sql = cs.ClubQuery.sqlQuery(ctx)
+	cs.sql = cs.CategoryQuery.sqlQuery(ctx)
 	return cs.sqlScan(ctx, v)
 }
 
 // ScanX is like Scan, but panics if an error occurs.
-func (cs *ClubSelect) ScanX(ctx context.Context, v interface{}) {
+func (cs *CategorySelect) ScanX(ctx context.Context, v interface{}) {
 	if err := cs.Scan(ctx, v); err != nil {
 		panic(err)
 	}
 }
 
 // Strings returns list of strings from a selector. It is only allowed when selecting one field.
-func (cs *ClubSelect) Strings(ctx context.Context) ([]string, error) {
+func (cs *CategorySelect) Strings(ctx context.Context) ([]string, error) {
 	if len(cs.fields) > 1 {
-		return nil, errors.New("ent: ClubSelect.Strings is not achievable when selecting more than 1 field")
+		return nil, errors.New("ent: CategorySelect.Strings is not achievable when selecting more than 1 field")
 	}
 	var v []string
 	if err := cs.Scan(ctx, &v); err != nil {
@@ -888,7 +798,7 @@ func (cs *ClubSelect) Strings(ctx context.Context) ([]string, error) {
 }
 
 // StringsX is like Strings, but panics if an error occurs.
-func (cs *ClubSelect) StringsX(ctx context.Context) []string {
+func (cs *CategorySelect) StringsX(ctx context.Context) []string {
 	v, err := cs.Strings(ctx)
 	if err != nil {
 		panic(err)
@@ -897,7 +807,7 @@ func (cs *ClubSelect) StringsX(ctx context.Context) []string {
 }
 
 // String returns a single string from a selector. It is only allowed when selecting one field.
-func (cs *ClubSelect) String(ctx context.Context) (_ string, err error) {
+func (cs *CategorySelect) String(ctx context.Context) (_ string, err error) {
 	var v []string
 	if v, err = cs.Strings(ctx); err != nil {
 		return
@@ -906,15 +816,15 @@ func (cs *ClubSelect) String(ctx context.Context) (_ string, err error) {
 	case 1:
 		return v[0], nil
 	case 0:
-		err = &NotFoundError{club.Label}
+		err = &NotFoundError{category.Label}
 	default:
-		err = fmt.Errorf("ent: ClubSelect.Strings returned %d results when one was expected", len(v))
+		err = fmt.Errorf("ent: CategorySelect.Strings returned %d results when one was expected", len(v))
 	}
 	return
 }
 
 // StringX is like String, but panics if an error occurs.
-func (cs *ClubSelect) StringX(ctx context.Context) string {
+func (cs *CategorySelect) StringX(ctx context.Context) string {
 	v, err := cs.String(ctx)
 	if err != nil {
 		panic(err)
@@ -923,9 +833,9 @@ func (cs *ClubSelect) StringX(ctx context.Context) string {
 }
 
 // Ints returns list of ints from a selector. It is only allowed when selecting one field.
-func (cs *ClubSelect) Ints(ctx context.Context) ([]int, error) {
+func (cs *CategorySelect) Ints(ctx context.Context) ([]int, error) {
 	if len(cs.fields) > 1 {
-		return nil, errors.New("ent: ClubSelect.Ints is not achievable when selecting more than 1 field")
+		return nil, errors.New("ent: CategorySelect.Ints is not achievable when selecting more than 1 field")
 	}
 	var v []int
 	if err := cs.Scan(ctx, &v); err != nil {
@@ -935,7 +845,7 @@ func (cs *ClubSelect) Ints(ctx context.Context) ([]int, error) {
 }
 
 // IntsX is like Ints, but panics if an error occurs.
-func (cs *ClubSelect) IntsX(ctx context.Context) []int {
+func (cs *CategorySelect) IntsX(ctx context.Context) []int {
 	v, err := cs.Ints(ctx)
 	if err != nil {
 		panic(err)
@@ -944,7 +854,7 @@ func (cs *ClubSelect) IntsX(ctx context.Context) []int {
 }
 
 // Int returns a single int from a selector. It is only allowed when selecting one field.
-func (cs *ClubSelect) Int(ctx context.Context) (_ int, err error) {
+func (cs *CategorySelect) Int(ctx context.Context) (_ int, err error) {
 	var v []int
 	if v, err = cs.Ints(ctx); err != nil {
 		return
@@ -953,15 +863,15 @@ func (cs *ClubSelect) Int(ctx context.Context) (_ int, err error) {
 	case 1:
 		return v[0], nil
 	case 0:
-		err = &NotFoundError{club.Label}
+		err = &NotFoundError{category.Label}
 	default:
-		err = fmt.Errorf("ent: ClubSelect.Ints returned %d results when one was expected", len(v))
+		err = fmt.Errorf("ent: CategorySelect.Ints returned %d results when one was expected", len(v))
 	}
 	return
 }
 
 // IntX is like Int, but panics if an error occurs.
-func (cs *ClubSelect) IntX(ctx context.Context) int {
+func (cs *CategorySelect) IntX(ctx context.Context) int {
 	v, err := cs.Int(ctx)
 	if err != nil {
 		panic(err)
@@ -970,9 +880,9 @@ func (cs *ClubSelect) IntX(ctx context.Context) int {
 }
 
 // Float64s returns list of float64s from a selector. It is only allowed when selecting one field.
-func (cs *ClubSelect) Float64s(ctx context.Context) ([]float64, error) {
+func (cs *CategorySelect) Float64s(ctx context.Context) ([]float64, error) {
 	if len(cs.fields) > 1 {
-		return nil, errors.New("ent: ClubSelect.Float64s is not achievable when selecting more than 1 field")
+		return nil, errors.New("ent: CategorySelect.Float64s is not achievable when selecting more than 1 field")
 	}
 	var v []float64
 	if err := cs.Scan(ctx, &v); err != nil {
@@ -982,7 +892,7 @@ func (cs *ClubSelect) Float64s(ctx context.Context) ([]float64, error) {
 }
 
 // Float64sX is like Float64s, but panics if an error occurs.
-func (cs *ClubSelect) Float64sX(ctx context.Context) []float64 {
+func (cs *CategorySelect) Float64sX(ctx context.Context) []float64 {
 	v, err := cs.Float64s(ctx)
 	if err != nil {
 		panic(err)
@@ -991,7 +901,7 @@ func (cs *ClubSelect) Float64sX(ctx context.Context) []float64 {
 }
 
 // Float64 returns a single float64 from a selector. It is only allowed when selecting one field.
-func (cs *ClubSelect) Float64(ctx context.Context) (_ float64, err error) {
+func (cs *CategorySelect) Float64(ctx context.Context) (_ float64, err error) {
 	var v []float64
 	if v, err = cs.Float64s(ctx); err != nil {
 		return
@@ -1000,15 +910,15 @@ func (cs *ClubSelect) Float64(ctx context.Context) (_ float64, err error) {
 	case 1:
 		return v[0], nil
 	case 0:
-		err = &NotFoundError{club.Label}
+		err = &NotFoundError{category.Label}
 	default:
-		err = fmt.Errorf("ent: ClubSelect.Float64s returned %d results when one was expected", len(v))
+		err = fmt.Errorf("ent: CategorySelect.Float64s returned %d results when one was expected", len(v))
 	}
 	return
 }
 
 // Float64X is like Float64, but panics if an error occurs.
-func (cs *ClubSelect) Float64X(ctx context.Context) float64 {
+func (cs *CategorySelect) Float64X(ctx context.Context) float64 {
 	v, err := cs.Float64(ctx)
 	if err != nil {
 		panic(err)
@@ -1017,9 +927,9 @@ func (cs *ClubSelect) Float64X(ctx context.Context) float64 {
 }
 
 // Bools returns list of bools from a selector. It is only allowed when selecting one field.
-func (cs *ClubSelect) Bools(ctx context.Context) ([]bool, error) {
+func (cs *CategorySelect) Bools(ctx context.Context) ([]bool, error) {
 	if len(cs.fields) > 1 {
-		return nil, errors.New("ent: ClubSelect.Bools is not achievable when selecting more than 1 field")
+		return nil, errors.New("ent: CategorySelect.Bools is not achievable when selecting more than 1 field")
 	}
 	var v []bool
 	if err := cs.Scan(ctx, &v); err != nil {
@@ -1029,7 +939,7 @@ func (cs *ClubSelect) Bools(ctx context.Context) ([]bool, error) {
 }
 
 // BoolsX is like Bools, but panics if an error occurs.
-func (cs *ClubSelect) BoolsX(ctx context.Context) []bool {
+func (cs *CategorySelect) BoolsX(ctx context.Context) []bool {
 	v, err := cs.Bools(ctx)
 	if err != nil {
 		panic(err)
@@ -1038,7 +948,7 @@ func (cs *ClubSelect) BoolsX(ctx context.Context) []bool {
 }
 
 // Bool returns a single bool from a selector. It is only allowed when selecting one field.
-func (cs *ClubSelect) Bool(ctx context.Context) (_ bool, err error) {
+func (cs *CategorySelect) Bool(ctx context.Context) (_ bool, err error) {
 	var v []bool
 	if v, err = cs.Bools(ctx); err != nil {
 		return
@@ -1047,15 +957,15 @@ func (cs *ClubSelect) Bool(ctx context.Context) (_ bool, err error) {
 	case 1:
 		return v[0], nil
 	case 0:
-		err = &NotFoundError{club.Label}
+		err = &NotFoundError{category.Label}
 	default:
-		err = fmt.Errorf("ent: ClubSelect.Bools returned %d results when one was expected", len(v))
+		err = fmt.Errorf("ent: CategorySelect.Bools returned %d results when one was expected", len(v))
 	}
 	return
 }
 
 // BoolX is like Bool, but panics if an error occurs.
-func (cs *ClubSelect) BoolX(ctx context.Context) bool {
+func (cs *CategorySelect) BoolX(ctx context.Context) bool {
 	v, err := cs.Bool(ctx)
 	if err != nil {
 		panic(err)
@@ -1063,7 +973,7 @@ func (cs *ClubSelect) BoolX(ctx context.Context) bool {
 	return v
 }
 
-func (cs *ClubSelect) sqlScan(ctx context.Context, v interface{}) error {
+func (cs *CategorySelect) sqlScan(ctx context.Context, v interface{}) error {
 	rows := &sql.Rows{}
 	query, args := cs.sqlQuery().Query()
 	if err := cs.driver.Query(ctx, query, args, rows); err != nil {
@@ -1073,7 +983,7 @@ func (cs *ClubSelect) sqlScan(ctx context.Context, v interface{}) error {
 	return sql.ScanSlice(rows, v)
 }
 
-func (cs *ClubSelect) sqlQuery() sql.Querier {
+func (cs *CategorySelect) sqlQuery() sql.Querier {
 	selector := cs.sql
 	selector.Select(selector.Columns(cs.fields...)...)
 	return selector

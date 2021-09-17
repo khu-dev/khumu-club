@@ -8,13 +8,23 @@ import (
 )
 
 var (
+	// CategoriesColumns holds the columns for the "categories" table.
+	CategoriesColumns = []*schema.Column{
+		{Name: "name", Type: field.TypeString},
+	}
+	// CategoriesTable holds the schema information for the "categories" table.
+	CategoriesTable = &schema.Table{
+		Name:        "categories",
+		Columns:     CategoriesColumns,
+		PrimaryKey:  []*schema.Column{CategoriesColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{},
+	}
 	// ClubsColumns holds the columns for the "clubs" table.
 	ClubsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
 		{Name: "name", Type: field.TypeString},
 		{Name: "summary", Type: field.TypeString},
 		{Name: "description", Type: field.TypeString, Size: 1000},
-		{Name: "categories", Type: field.TypeJSON},
 		{Name: "images", Type: field.TypeJSON, Nullable: true},
 		{Name: "homepage", Type: field.TypeString, Nullable: true},
 		{Name: "instagram", Type: field.TypeString, Nullable: true},
@@ -51,13 +61,42 @@ var (
 			},
 		},
 	}
+	// CategoryClubsColumns holds the columns for the "category_clubs" table.
+	CategoryClubsColumns = []*schema.Column{
+		{Name: "category_id", Type: field.TypeString},
+		{Name: "club_id", Type: field.TypeInt},
+	}
+	// CategoryClubsTable holds the schema information for the "category_clubs" table.
+	CategoryClubsTable = &schema.Table{
+		Name:       "category_clubs",
+		Columns:    CategoryClubsColumns,
+		PrimaryKey: []*schema.Column{CategoryClubsColumns[0], CategoryClubsColumns[1]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "category_clubs_category_id",
+				Columns:    []*schema.Column{CategoryClubsColumns[0]},
+				RefColumns: []*schema.Column{CategoriesColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+			{
+				Symbol:     "category_clubs_club_id",
+				Columns:    []*schema.Column{CategoryClubsColumns[1]},
+				RefColumns: []*schema.Column{ClubsColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+		},
+	}
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
+		CategoriesTable,
 		ClubsTable,
 		LikeClubsTable,
+		CategoryClubsTable,
 	}
 )
 
 func init() {
 	LikeClubsTable.ForeignKeys[0].RefTable = ClubsTable
+	CategoryClubsTable.ForeignKeys[0].RefTable = CategoriesTable
+	CategoryClubsTable.ForeignKeys[1].RefTable = ClubsTable
 }

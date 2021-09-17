@@ -9,6 +9,7 @@ import (
 
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"github.com/khu-dev/khumu-club/ent/category"
 	"github.com/khu-dev/khumu-club/ent/club"
 	"github.com/khu-dev/khumu-club/ent/likeclub"
 )
@@ -35,12 +36,6 @@ func (cc *ClubCreate) SetSummary(s string) *ClubCreate {
 // SetDescription sets the "description" field.
 func (cc *ClubCreate) SetDescription(s string) *ClubCreate {
 	cc.mutation.SetDescription(s)
-	return cc
-}
-
-// SetCategories sets the "categories" field.
-func (cc *ClubCreate) SetCategories(s []string) *ClubCreate {
-	cc.mutation.SetCategories(s)
 	return cc
 }
 
@@ -149,6 +144,21 @@ func (cc *ClubCreate) AddLikes(l ...*LikeClub) *ClubCreate {
 	return cc.AddLikeIDs(ids...)
 }
 
+// AddCategoryIDs adds the "categories" edge to the Category entity by IDs.
+func (cc *ClubCreate) AddCategoryIDs(ids ...string) *ClubCreate {
+	cc.mutation.AddCategoryIDs(ids...)
+	return cc
+}
+
+// AddCategories adds the "categories" edges to the Category entity.
+func (cc *ClubCreate) AddCategories(c ...*Category) *ClubCreate {
+	ids := make([]string, len(c))
+	for i := range c {
+		ids[i] = c[i].ID
+	}
+	return cc.AddCategoryIDs(ids...)
+}
+
 // Mutation returns the ClubMutation object of the builder.
 func (cc *ClubCreate) Mutation() *ClubMutation {
 	return cc.mutation
@@ -223,9 +233,6 @@ func (cc *ClubCreate) check() error {
 			return &ValidationError{Name: "description", err: fmt.Errorf("ent: validator failed for field \"description\": %w", err)}
 		}
 	}
-	if _, ok := cc.mutation.Categories(); !ok {
-		return &ValidationError{Name: "categories", err: errors.New("ent: missing required field \"categories\"")}
-	}
 	if _, ok := cc.mutation.Recommended(); !ok {
 		return &ValidationError{Name: "recommended", err: errors.New("ent: missing required field \"recommended\"")}
 	}
@@ -279,14 +286,6 @@ func (cc *ClubCreate) createSpec() (*Club, *sqlgraph.CreateSpec) {
 			Column: club.FieldDescription,
 		})
 		_node.Description = value
-	}
-	if value, ok := cc.mutation.Categories(); ok {
-		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
-			Type:   field.TypeJSON,
-			Value:  value,
-			Column: club.FieldCategories,
-		})
-		_node.Categories = value
 	}
 	if value, ok := cc.mutation.Images(); ok {
 		_spec.Fields = append(_spec.Fields, &sqlgraph.FieldSpec{
@@ -355,6 +354,25 @@ func (cc *ClubCreate) createSpec() (*Club, *sqlgraph.CreateSpec) {
 				IDSpec: &sqlgraph.FieldSpec{
 					Type:   field.TypeInt,
 					Column: likeclub.FieldID,
+				},
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := cc.mutation.CategoriesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   club.CategoriesTable,
+			Columns: club.CategoriesPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: &sqlgraph.FieldSpec{
+					Type:   field.TypeString,
+					Column: category.FieldID,
 				},
 			},
 		}

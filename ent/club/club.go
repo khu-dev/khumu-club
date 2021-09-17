@@ -13,8 +13,6 @@ const (
 	FieldSummary = "summary"
 	// FieldDescription holds the string denoting the description field in the database.
 	FieldDescription = "description"
-	// FieldCategories holds the string denoting the categories field in the database.
-	FieldCategories = "categories"
 	// FieldImages holds the string denoting the images field in the database.
 	FieldImages = "images"
 	// FieldHomepage holds the string denoting the homepage field in the database.
@@ -31,6 +29,10 @@ const (
 	FieldRecommended = "recommended"
 	// EdgeLikes holds the string denoting the likes edge name in mutations.
 	EdgeLikes = "likes"
+	// EdgeCategories holds the string denoting the categories edge name in mutations.
+	EdgeCategories = "categories"
+	// CategoryFieldID holds the string denoting the ID field of the Category.
+	CategoryFieldID = "name"
 	// Table holds the table name of the club in the database.
 	Table = "clubs"
 	// LikesTable is the table the holds the likes relation/edge.
@@ -40,6 +42,11 @@ const (
 	LikesInverseTable = "like_clubs"
 	// LikesColumn is the table column denoting the likes relation/edge.
 	LikesColumn = "club_likes"
+	// CategoriesTable is the table the holds the categories relation/edge. The primary key declared below.
+	CategoriesTable = "category_clubs"
+	// CategoriesInverseTable is the table name for the Category entity.
+	// It exists in this package in order to avoid circular dependency with the "category" package.
+	CategoriesInverseTable = "categories"
 )
 
 // Columns holds all SQL columns for club fields.
@@ -48,7 +55,6 @@ var Columns = []string{
 	FieldName,
 	FieldSummary,
 	FieldDescription,
-	FieldCategories,
 	FieldImages,
 	FieldHomepage,
 	FieldInstagram,
@@ -57,6 +63,12 @@ var Columns = []string{
 	FieldEmail,
 	FieldRecommended,
 }
+
+var (
+	// CategoriesPrimaryKey and CategoriesColumn2 are the table columns denoting the
+	// primary key for the categories relation (M2M).
+	CategoriesPrimaryKey = []string{"category_id", "club_id"}
+)
 
 // ValidColumn reports if the column name is valid (part of the table columns).
 func ValidColumn(column string) bool {

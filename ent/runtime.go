@@ -18,7 +18,7 @@ func init() {
 	// club.DescriptionValidator is a validator for the "description" field. It is called by the builders before save.
 	club.DescriptionValidator = clubDescDescription.Validators[0].(func(string) error)
 	// clubDescRecommended is the schema descriptor for recommended field.
-	clubDescRecommended := clubFields[10].Descriptor()
+	clubDescRecommended := clubFields[9].Descriptor()
 	// club.DefaultRecommended holds the default value on creation for the recommended field.
 	club.DefaultRecommended = clubDescRecommended.Default.(bool)
 }

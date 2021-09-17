@@ -49,7 +49,7 @@ func Connect() *ent.Client {
 		context.TODO(),
 		migrate.WithDropIndex(true),
 		migrate.WithForeignKeys(true),
-		migrate.WithDropColumn(true),
+		//migrate.WithDropColumn(true), // 데이터 날아갈 수도 있음...
 	)
 	if err != nil {
 		log.Fatalf("failed creating schema resources: %v", err)

@@ -22,8 +22,6 @@ type Club struct {
 	Summary string `json:"summary,omitempty"`
 	// Description holds the value of the "description" field.
 	Description string `json:"description,omitempty"`
-	// Categories holds the value of the "categories" field.
-	Categories []string `json:"categories,omitempty"`
 	// Images holds the value of the "images" field.
 	Images []string `json:"images,omitempty"`
 	// Homepage holds the value of the "homepage" field.
@@ -47,9 +45,11 @@ type Club struct {
 type ClubEdges struct {
 	// Likes holds the value of the likes edge.
 	Likes []*LikeClub `json:"likes,omitempty"`
+	// Categories holds the value of the categories edge.
+	Categories []*Category `json:"categories,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [1]bool
+	loadedTypes [2]bool
 }
 
 // LikesOrErr returns the Likes value or an error if the edge
@@ -61,12 +61,21 @@ func (e ClubEdges) LikesOrErr() ([]*LikeClub, error) {
 	return nil, &NotLoadedError{edge: "likes"}
 }
 
+// CategoriesOrErr returns the Categories value or an error if the edge
+// was not loaded in eager-loading.
+func (e ClubEdges) CategoriesOrErr() ([]*Category, error) {
+	if e.loadedTypes[1] {
+		return e.Categories, nil
+	}
+	return nil, &NotLoadedError{edge: "categories"}
+}
+
 // scanValues returns the types for scanning values from sql.Rows.
 func (*Club) scanValues(columns []string) ([]interface{}, error) {
 	values := make([]interface{}, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case club.FieldCategories, club.FieldImages:
+		case club.FieldImages:
 			values[i] = new([]byte)
 		case club.FieldRecommended:
 			values[i] = new(sql.NullBool)
@@ -112,15 +121,6 @@ func (c *Club) assignValues(columns []string, values []interface{}) error {
 				return fmt.Errorf("unexpected type %T for field description", values[i])
 			} else if value.Valid {
 				c.Description = value.String
-			}
-		case club.FieldCategories:
-
-			if value, ok := values[i].(*[]byte); !ok {
-				return fmt.Errorf("unexpected type %T for field categories", values[i])
-			} else if value != nil && len(*value) > 0 {
-				if err := json.Unmarshal(*value, &c.Categories); err != nil {
-					return fmt.Errorf("unmarshal field categories: %w", err)
-				}
 			}
 		case club.FieldImages:
 
@@ -177,6 +177,11 @@ func (c *Club) QueryLikes() *LikeClubQuery {
 	return (&ClubClient{config: c.config}).QueryLikes(c)
 }
 
+// QueryCategories queries the "categories" edge of the Club entity.
+func (c *Club) QueryCategories() *CategoryQuery {
+	return (&ClubClient{config: c.config}).QueryCategories(c)
+}
+
 // Update returns a builder for updating this Club.
 // Note that you need to call Club.Unwrap() before calling this method if this Club
 // was returned from a transaction, and the transaction was committed or rolled back.
@@ -206,8 +211,6 @@ func (c *Club) String() string {
 	builder.WriteString(c.Summary)
 	builder.WriteString(", description=")
 	builder.WriteString(c.Description)
-	builder.WriteString(", categories=")
-	builder.WriteString(fmt.Sprintf("%v", c.Categories))
 	builder.WriteString(", images=")
 	builder.WriteString(fmt.Sprintf("%v", c.Images))
 	builder.WriteString(", homepage=")

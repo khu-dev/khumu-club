@@ -8,6 +8,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/khu-dev/khumu-club/ent/category"
 	"github.com/khu-dev/khumu-club/ent/club"
 	"github.com/khu-dev/khumu-club/ent/likeclub"
 	"github.com/khu-dev/khumu-club/ent/predicate"
@@ -24,34 +25,360 @@ const (
 	OpUpdateOne = ent.OpUpdateOne
 
 	// Node types.
+	TypeCategory = "Category"
 	TypeClub     = "Club"
 	TypeLikeClub = "LikeClub"
 )
 
-// ClubMutation represents an operation that mutates the Club nodes in the graph.
-type ClubMutation struct {
+// CategoryMutation represents an operation that mutates the Category nodes in the graph.
+type CategoryMutation struct {
 	config
 	op            Op
 	typ           string
-	id            *int
-	name          *string
-	summary       *string
-	description   *string
-	categories    *[]string
-	images        *[]string
-	homepage      *string
-	instagram     *string
-	facebook      *string
-	phone         *string
-	email         *string
-	recommended   *bool
+	id            *string
 	clearedFields map[string]struct{}
-	likes         map[int]struct{}
-	removedlikes  map[int]struct{}
-	clearedlikes  bool
+	clubs         map[int]struct{}
+	removedclubs  map[int]struct{}
+	clearedclubs  bool
 	done          bool
-	oldValue      func(context.Context) (*Club, error)
-	predicates    []predicate.Club
+	oldValue      func(context.Context) (*Category, error)
+	predicates    []predicate.Category
+}
+
+var _ ent.Mutation = (*CategoryMutation)(nil)
+
+// categoryOption allows management of the mutation configuration using functional options.
+type categoryOption func(*CategoryMutation)
+
+// newCategoryMutation creates new mutation for the Category entity.
+func newCategoryMutation(c config, op Op, opts ...categoryOption) *CategoryMutation {
+	m := &CategoryMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeCategory,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withCategoryID sets the ID field of the mutation.
+func withCategoryID(id string) categoryOption {
+	return func(m *CategoryMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *Category
+		)
+		m.oldValue = func(ctx context.Context) (*Category, error) {
+			once.Do(func() {
+				if m.done {
+					err = fmt.Errorf("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().Category.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withCategory sets the old Category of the mutation.
+func withCategory(node *Category) categoryOption {
+	return func(m *CategoryMutation) {
+		m.oldValue = func(context.Context) (*Category, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m CategoryMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m CategoryMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, fmt.Errorf("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of Category entities.
+func (m *CategoryMutation) SetID(id string) {
+	m.id = &id
+}
+
+// ID returns the ID value in the mutation. Note that the ID
+// is only available if it was provided to the builder.
+func (m *CategoryMutation) ID() (id string, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// AddClubIDs adds the "clubs" edge to the Club entity by ids.
+func (m *CategoryMutation) AddClubIDs(ids ...int) {
+	if m.clubs == nil {
+		m.clubs = make(map[int]struct{})
+	}
+	for i := range ids {
+		m.clubs[ids[i]] = struct{}{}
+	}
+}
+
+// ClearClubs clears the "clubs" edge to the Club entity.
+func (m *CategoryMutation) ClearClubs() {
+	m.clearedclubs = true
+}
+
+// ClubsCleared reports if the "clubs" edge to the Club entity was cleared.
+func (m *CategoryMutation) ClubsCleared() bool {
+	return m.clearedclubs
+}
+
+// RemoveClubIDs removes the "clubs" edge to the Club entity by IDs.
+func (m *CategoryMutation) RemoveClubIDs(ids ...int) {
+	if m.removedclubs == nil {
+		m.removedclubs = make(map[int]struct{})
+	}
+	for i := range ids {
+		m.removedclubs[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedClubs returns the removed IDs of the "clubs" edge to the Club entity.
+func (m *CategoryMutation) RemovedClubsIDs() (ids []int) {
+	for id := range m.removedclubs {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ClubsIDs returns the "clubs" edge IDs in the mutation.
+func (m *CategoryMutation) ClubsIDs() (ids []int) {
+	for id := range m.clubs {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetClubs resets all changes to the "clubs" edge.
+func (m *CategoryMutation) ResetClubs() {
+	m.clubs = nil
+	m.clearedclubs = false
+	m.removedclubs = nil
+}
+
+// Op returns the operation name.
+func (m *CategoryMutation) Op() Op {
+	return m.op
+}
+
+// Type returns the node type of this mutation (Category).
+func (m *CategoryMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *CategoryMutation) Fields() []string {
+	fields := make([]string, 0, 0)
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *CategoryMutation) Field(name string) (ent.Value, bool) {
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *CategoryMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	return nil, fmt.Errorf("unknown Category field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *CategoryMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown Category field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *CategoryMutation) AddedFields() []string {
+	return nil
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *CategoryMutation) AddedField(name string) (ent.Value, bool) {
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *CategoryMutation) AddField(name string, value ent.Value) error {
+	return fmt.Errorf("unknown Category numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *CategoryMutation) ClearedFields() []string {
+	return nil
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *CategoryMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *CategoryMutation) ClearField(name string) error {
+	return fmt.Errorf("unknown Category nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *CategoryMutation) ResetField(name string) error {
+	return fmt.Errorf("unknown Category field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *CategoryMutation) AddedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.clubs != nil {
+		edges = append(edges, category.EdgeClubs)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *CategoryMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case category.EdgeClubs:
+		ids := make([]ent.Value, 0, len(m.clubs))
+		for id := range m.clubs {
+			ids = append(ids, id)
+		}
+		return ids
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *CategoryMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.removedclubs != nil {
+		edges = append(edges, category.EdgeClubs)
+	}
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *CategoryMutation) RemovedIDs(name string) []ent.Value {
+	switch name {
+	case category.EdgeClubs:
+		ids := make([]ent.Value, 0, len(m.removedclubs))
+		for id := range m.removedclubs {
+			ids = append(ids, id)
+		}
+		return ids
+	}
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *CategoryMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.clearedclubs {
+		edges = append(edges, category.EdgeClubs)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *CategoryMutation) EdgeCleared(name string) bool {
+	switch name {
+	case category.EdgeClubs:
+		return m.clearedclubs
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *CategoryMutation) ClearEdge(name string) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown Category unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *CategoryMutation) ResetEdge(name string) error {
+	switch name {
+	case category.EdgeClubs:
+		m.ResetClubs()
+		return nil
+	}
+	return fmt.Errorf("unknown Category edge %s", name)
+}
+
+// ClubMutation represents an operation that mutates the Club nodes in the graph.
+type ClubMutation struct {
+	config
+	op                Op
+	typ               string
+	id                *int
+	name              *string
+	summary           *string
+	description       *string
+	images            *[]string
+	homepage          *string
+	instagram         *string
+	facebook          *string
+	phone             *string
+	email             *string
+	recommended       *bool
+	clearedFields     map[string]struct{}
+	likes             map[int]struct{}
+	removedlikes      map[int]struct{}
+	clearedlikes      bool
+	categories        map[string]struct{}
+	removedcategories map[string]struct{}
+	clearedcategories bool
+	done              bool
+	oldValue          func(context.Context) (*Club, error)
+	predicates        []predicate.Club
 }
 
 var _ ent.Mutation = (*ClubMutation)(nil)
@@ -239,42 +566,6 @@ func (m *ClubMutation) OldDescription(ctx context.Context) (v string, err error)
 // ResetDescription resets all changes to the "description" field.
 func (m *ClubMutation) ResetDescription() {
 	m.description = nil
-}
-
-// SetCategories sets the "categories" field.
-func (m *ClubMutation) SetCategories(s []string) {
-	m.categories = &s
-}
-
-// Categories returns the value of the "categories" field in the mutation.
-func (m *ClubMutation) Categories() (r []string, exists bool) {
-	v := m.categories
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldCategories returns the old "categories" field's value of the Club entity.
-// If the Club object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *ClubMutation) OldCategories(ctx context.Context) (v []string, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, fmt.Errorf("OldCategories is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, fmt.Errorf("OldCategories requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldCategories: %w", err)
-	}
-	return oldValue.Categories, nil
-}
-
-// ResetCategories resets all changes to the "categories" field.
-func (m *ClubMutation) ResetCategories() {
-	m.categories = nil
 }
 
 // SetImages sets the "images" field.
@@ -660,6 +951,59 @@ func (m *ClubMutation) ResetLikes() {
 	m.removedlikes = nil
 }
 
+// AddCategoryIDs adds the "categories" edge to the Category entity by ids.
+func (m *ClubMutation) AddCategoryIDs(ids ...string) {
+	if m.categories == nil {
+		m.categories = make(map[string]struct{})
+	}
+	for i := range ids {
+		m.categories[ids[i]] = struct{}{}
+	}
+}
+
+// ClearCategories clears the "categories" edge to the Category entity.
+func (m *ClubMutation) ClearCategories() {
+	m.clearedcategories = true
+}
+
+// CategoriesCleared reports if the "categories" edge to the Category entity was cleared.
+func (m *ClubMutation) CategoriesCleared() bool {
+	return m.clearedcategories
+}
+
+// RemoveCategoryIDs removes the "categories" edge to the Category entity by IDs.
+func (m *ClubMutation) RemoveCategoryIDs(ids ...string) {
+	if m.removedcategories == nil {
+		m.removedcategories = make(map[string]struct{})
+	}
+	for i := range ids {
+		m.removedcategories[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedCategories returns the removed IDs of the "categories" edge to the Category entity.
+func (m *ClubMutation) RemovedCategoriesIDs() (ids []string) {
+	for id := range m.removedcategories {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// CategoriesIDs returns the "categories" edge IDs in the mutation.
+func (m *ClubMutation) CategoriesIDs() (ids []string) {
+	for id := range m.categories {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetCategories resets all changes to the "categories" edge.
+func (m *ClubMutation) ResetCategories() {
+	m.categories = nil
+	m.clearedcategories = false
+	m.removedcategories = nil
+}
+
 // Op returns the operation name.
 func (m *ClubMutation) Op() Op {
 	return m.op
@@ -674,7 +1018,7 @@ func (m *ClubMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *ClubMutation) Fields() []string {
-	fields := make([]string, 0, 11)
+	fields := make([]string, 0, 10)
 	if m.name != nil {
 		fields = append(fields, club.FieldName)
 	}
@@ -683,9 +1027,6 @@ func (m *ClubMutation) Fields() []string {
 	}
 	if m.description != nil {
 		fields = append(fields, club.FieldDescription)
-	}
-	if m.categories != nil {
-		fields = append(fields, club.FieldCategories)
 	}
 	if m.images != nil {
 		fields = append(fields, club.FieldImages)
@@ -722,8 +1063,6 @@ func (m *ClubMutation) Field(name string) (ent.Value, bool) {
 		return m.Summary()
 	case club.FieldDescription:
 		return m.Description()
-	case club.FieldCategories:
-		return m.Categories()
 	case club.FieldImages:
 		return m.Images()
 	case club.FieldHomepage:
@@ -753,8 +1092,6 @@ func (m *ClubMutation) OldField(ctx context.Context, name string) (ent.Value, er
 		return m.OldSummary(ctx)
 	case club.FieldDescription:
 		return m.OldDescription(ctx)
-	case club.FieldCategories:
-		return m.OldCategories(ctx)
 	case club.FieldImages:
 		return m.OldImages(ctx)
 	case club.FieldHomepage:
@@ -798,13 +1135,6 @@ func (m *ClubMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetDescription(v)
-		return nil
-	case club.FieldCategories:
-		v, ok := value.([]string)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetCategories(v)
 		return nil
 	case club.FieldImages:
 		v, ok := value.([]string)
@@ -952,9 +1282,6 @@ func (m *ClubMutation) ResetField(name string) error {
 	case club.FieldDescription:
 		m.ResetDescription()
 		return nil
-	case club.FieldCategories:
-		m.ResetCategories()
-		return nil
 	case club.FieldImages:
 		m.ResetImages()
 		return nil
@@ -982,9 +1309,12 @@ func (m *ClubMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *ClubMutation) AddedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
 	if m.likes != nil {
 		edges = append(edges, club.EdgeLikes)
+	}
+	if m.categories != nil {
+		edges = append(edges, club.EdgeCategories)
 	}
 	return edges
 }
@@ -999,15 +1329,24 @@ func (m *ClubMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case club.EdgeCategories:
+		ids := make([]ent.Value, 0, len(m.categories))
+		for id := range m.categories {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *ClubMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
 	if m.removedlikes != nil {
 		edges = append(edges, club.EdgeLikes)
+	}
+	if m.removedcategories != nil {
+		edges = append(edges, club.EdgeCategories)
 	}
 	return edges
 }
@@ -1022,15 +1361,24 @@ func (m *ClubMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case club.EdgeCategories:
+		ids := make([]ent.Value, 0, len(m.removedcategories))
+		for id := range m.removedcategories {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *ClubMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
 	if m.clearedlikes {
 		edges = append(edges, club.EdgeLikes)
+	}
+	if m.clearedcategories {
+		edges = append(edges, club.EdgeCategories)
 	}
 	return edges
 }
@@ -1041,6 +1389,8 @@ func (m *ClubMutation) EdgeCleared(name string) bool {
 	switch name {
 	case club.EdgeLikes:
 		return m.clearedlikes
+	case club.EdgeCategories:
+		return m.clearedcategories
 	}
 	return false
 }
@@ -1059,6 +1409,9 @@ func (m *ClubMutation) ResetEdge(name string) error {
 	switch name {
 	case club.EdgeLikes:
 		m.ResetLikes()
+		return nil
+	case club.EdgeCategories:
+		m.ResetCategories()
 		return nil
 	}
 	return fmt.Errorf("unknown Club edge %s", name)
