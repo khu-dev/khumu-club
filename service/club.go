@@ -59,7 +59,7 @@ func (s *ClubService) CreateClub(body *data.ClubDto) (*data.ClubDto, error) {
 	return data.MapClubToClubDto(club), err
 }
 func (s *ClubService) ListClubs() ([]*data.ClubDto, error) {
-	results := s.DB.Club.Query().AllX(context.TODO())
+	results := s.DB.Club.Query().WithCategories().AllX(context.TODO())
 	sortedResults := s.SortClubList(results)
 	outputs := make([]*data.ClubDto, len(sortedResults))
 	for i, club := range sortedResults {
@@ -74,6 +74,7 @@ func (s *ClubService) ListClubsByCategoryContaining(ctg string) ([]*data.ClubDto
 	results, err := s.DB.Club.Query().Where(club.HasCategoriesWith(
 		category.ID(ctg)),
 	).
+		WithCategories().
 		All(context.TODO())
 	if err != nil {
 		log.Error(err)
